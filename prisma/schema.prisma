@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  agent Agent @relation(fields: [agentId], references: [agentId])
+  agentId String
+  
+  userId String @unique
+  hash String
+
+  transactions Transaction[]
+  wallet Wallet?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@map("Users")
+}
+
+// model User2 {
+//   id Int @id @default(autoincrement())
+//   email String @unique
+
+//   @@map("Users2")
+// }
+
+model Transaction {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [userId])
+  userId String
+  transId String?
+  ticketId String
+  sDate DateTime
+  bAmt Decimal
+  wAmt Decimal
+  payout Decimal
+  creditDeducted Decimal
+  winloss Int
+  status Int
+  ip String
+  odds String
+  commPerc Decimal
+  comm Decimal
+  game String
+  source Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@map("Transactions")
+}
+
+model Wallet {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [userId])
+  userId String @unique
+  name String?
+  balance Decimal @db.Decimal(20,4)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@map("Wallets")
+}
+
+model Currency {
+  id Int @id @default(autoincrement())
+  code String @unique
+  name String
+
+  agents Agent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@map("Currencies")
+}
+
+model Agent {
+  id Int @id @default(autoincrement())
+  agentId String @unique
+  apiKey String
+
+  currency Currency @relation(fields: [currencyId], references: [id])
+  currencyId Int
+
+  users User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@map("Agents")
+}
