@@ -1,49 +1,48 @@
 import { ForbiddenException, HttpCode, HttpStatus, Injectable, Res } from "@nestjs/common";
-import { User, Transaction, Wallet} from '@prisma/client';
-import { PrismaService } from "src/prisma/prisma.service";
 import { AuthDto, SignUpDto } from "./dto";
 import * as argon from 'argon2';
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { GenerateUserIdService } from "src/helper/genUserId/genUserIdHelper.service";
 import { HttpService } from "@nestjs/axios";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Currency } from "src/models/currency.entity";
+import { User } from "src/models/user.entity";
+import { Wallet } from "src/models/wallet.entity";
+import { Agent } from "src/models/agent.entity";
 import { HitProviderService } from "src/helper/hitProvider/hitProviderHelper.service";
 
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
+    @InjectRepository(Currency) private currenciesRepository: Repository<Currency>,
+    @InjectRepository(User) private usersRepository: Repository<User>,
+    @InjectRepository(Wallet) private walletsRepository: Repository<Wallet>,
+    @InjectRepository(Agent) private agentsRepository: Repository<Agent>,
     // private genUserIdService: GenerateUserIdService
     // private readonly httpService: HttpService,
     private hitProviderService: HitProviderService
   ) {}
+
   async signin(dto: AuthDto) {
     // find the user by email
-    const user = await this.prisma.user.findUnique({
+    const user = await this.usersRepository.findOne({
+      relations: {
+        agent: true,
+      },
       where: {
         userId: dto.userid,
-      },
-      select: {
-        userId: true,
-        hash: true,
-        agentId: true,
-        agent: {
-          select: {
-            apiKey: true,
-          }
-        }
       }
     });
-    // if user does not exist throw exception
+    // if user doesn't exist throw exception
     if (!user) throw new ForbiddenException('Credentials incorrect, please check the user id')
     // compare password
-    const pwMatches = await argon.verify(user.hash,dto.password,)
+    const pwMatches = await argon.verify(user.hash,dto.password)
     // if password incorrect throw exception
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect')
     // hit api provider
-    // const getProvider = await this.httpService.get('https://s-pi-spr.ww365.club/api/SportMember/UATAAMKHTEST1/Login?agentId=UATAAMKH&hash=77e5c2dc026ab8120d16938d8367b066');
     const params = {
       apiKey: user.agent.apiKey,
-      agentId: user.agentId,
+      agentId: user.agent.agentId,
       userId: user.userId,
       lang: dto.lang,
       se: dto.se,
@@ -87,12 +86,11 @@ export class AuthService {
     }
     const hitProvider = await this.hitProviderService.login(params,paramsJson);
     // send back the user
-    delete user.hash;
-    delete user.agent;
+
     return {
       status: true,
       msg: 'signed in',
-      data: user,
+      data: user.userId,
       loginUrl: hitProvider,
     }
   }
@@ -100,53 +98,45 @@ export class AuthService {
   async signup(dto: SignUpDto) {
     // Generate the password hash
     const hash = await argon.hash(dto.password);
-    // save the new user in the db
+    // save the new user in the DB
     try {
       // get agentId from currency value
-      const currency = await this.prisma.currency.findUnique({
-        where: {
-          code: dto.currency
+      const currency = await this.currenciesRepository.findOne({
+        relations: {
+          agents: true,
         },
-        include : { agents: true },
+        where: {
+          code: dto.currency,
+        }
       });
       if (!currency) throw new ForbiddenException('Currency code is wrong, please check again');
-      const agentId:string = currency.agents[0].agentId;
-
-      // // generate User Id
-      // const genId = await this.genUserIdService.index('MMK');
-      // return {
-      //   data:genId
-      // }
-      const userIdUpper = dto.userid.toUpperCase()
-      const user = await this.prisma.user.create({
-        data: {
-          userId: userIdUpper,
-          hash,
-          agentId: agentId,
-          wallet: {
-            create: {
-              name: `${currency.name}-${agentId}`,
-              balance: 0,
-            }
-          }
-        },
+      const agentId: string = currency.agents[0].agentId;
+      // get agentId instansce
+      const agent = await this.agentsRepository.findOneBy({
+        agentId: agentId,
       });
-  
-      delete user.hash;
-      // return the saved user
+      const userIdUpper = dto.userid.toUpperCase()
+      const newUser = await this.usersRepository.create({
+        userId: userIdUpper,
+        hash,
+        agent, 
+      });
+      const newWallet = await this.walletsRepository.create({
+        name: `${currency.name}-${agentId}`,
+        balance: 0,
+      })
+      newUser.wallet = newWallet;
+      const userSaved = await this.usersRepository.save(newUser);
       return {
         status: true,
         msg: 'signed up successfully',
-        data: user
+        data: {
+          userid: userSaved.userId,
+        },
       }
-    } catch(error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new ForbiddenException(
-            'Credentials taken, User id has been used',
-          );
-        }
-      }
+    } catch (error) {
+      if (error.code === '23505') throw new ForbiddenException('Credentials taken, User id has been used')
+      // handle error
       throw error;
     }
   }

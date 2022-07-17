@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import axios from "axios";
-import { PrismaService } from "src/prisma/prisma.service";
+// import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
 export class HitProviderService {
   private md5 = require('md5');
-  constructor(private prismaService: PrismaService){}
+  // constructor(private prismaService: PrismaService){}
   async login(
     params,
     paramsJson
