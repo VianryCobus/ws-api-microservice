@@ -1,26 +1,26 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { User } from "./user.entity";
 
-export enum WinLoss {
-  WIN = 1,
-  LOSE = 0,
-  DRAW = 2,
-  WINHALF = 3,
-  LOSEHALF = 4,
-}
+// export enum WinLoss {
+//   WIN = 1,
+//   LOSE = 0,
+//   DRAW = 2,
+//   WINHALF = 3,
+//   LOSEHALF = 4,
+// }
 
-export enum Status {
-  PENDING = -1,
-  ACCEPTED = 0,
-  REJECTED = 1,
-  CANCELLED = 4,
-  REFUNDED = 5,
-}
+// export enum Status {
+//   PENDING = -1,
+//   ACCEPTED = 0,
+//   REJECTED = 1,
+//   CANCELLED = 4,
+//   REFUNDED = 5,
+// }
 
-export enum Source {
-  MOBILE = 1,
-  DESKTOP = 0,
-}
+// export enum Source {
+//   MOBILE = 1,
+//   DESKTOP = 0,
+// }
 
 @Entity('Transactions')
 export class Transaction {
@@ -75,17 +75,29 @@ export class Transaction {
   })
   creditDeducted: number;
 
-  @Column({
-    type: 'enum',
-    enum: WinLoss,
-  })
-  winloss: WinLoss;
+  // @Column({
+  //   type: 'enum',
+  //   enum: WinLoss,
+  // })
+  // winloss: WinLoss;
 
   @Column({
-    type: 'enum',
-    enum: Status,
+    type: 'varchar',
+    length: 255,
   })
-  status: Status;
+  winloss: string;
+
+  // @Column({
+  //   type: 'enum',
+  //   enum: Status,
+  // })
+  // status: Status;
+
+  @Column({
+    type: 'varchar',
+    length: 255,
+  })
+  status: string;
 
   @Column({
     type: 'varchar',
@@ -121,11 +133,17 @@ export class Transaction {
   })
   game: string;
 
+  // @Column({
+  //   type: 'enum',
+  //   enum: Source,
+  // })
+  // source: Source
+
   @Column({
-    type: 'enum',
-    enum: Source,
+    type: 'varchar',
+    length: 255,
   })
-  source: Source
+  source: string;
 
   @ManyToOne(() => User, (user) => user.transactions)
   @JoinColumn()
