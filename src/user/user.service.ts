@@ -19,10 +19,7 @@ export class UserService {
     this.logger = new Logger();
   }
   async getbalance(dto: BalanceDto){
-    this.logger.debug({
-      message: 'Hit API get balance',
-      params: dto,
-    });
+    this.logger.debug({message: 'Hit API get balance',params: dto,});
     const balance = await this.usersRepository.findOne({
       relations: {
         wallet: true,
@@ -32,14 +29,15 @@ export class UserService {
       }
     });
     // if user and balance does not exist throw exception
+    let returnData;
     if (!balance) {
-      return {
+      returnData = {
         status: "0",
         data: {},
         message: "882",
       }
     } else {
-      return {
+      returnData = {
         status: "1",
         data: {
           CurrentCredit: Number(balance.wallet.balance).toFixed(2),
@@ -47,5 +45,7 @@ export class UserService {
         message: null,
       }
     }
+    this.logger.debug({message: 'Return API get balance',params: returnData,});
+    return returnData;
   }
 }

@@ -2,7 +2,7 @@ import { Body, Controller, Get, Query } from '@nestjs/common';
 import { BalanceDto } from './dto/balance.dto';
 import { UserService } from './user.service';
 
-@Controller('')
+@Controller('provider')
 export class UserController {
   constructor(private userService: UserService){}
 
