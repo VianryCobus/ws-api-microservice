@@ -14,6 +14,9 @@ import { Transaction } from './models/transaction.entity';
 import { Wallet } from './models/wallet.entity';
 import { Currency } from './models/currency.entity';
 import { Agent } from './models/agent.entity';
+import { TransactionController } from './transaction/transaction.controller';
+import { TransactionService } from './transaction/transaction.service';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -44,9 +47,10 @@ import { Agent } from './models/agent.entity';
     AuthModule,
     // PrismaModule,
     GenerateUserIdModule,
-    HitProviderModule, 
+    HitProviderModule,
+    TransactionModule, 
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, TransactionController],
+  providers: [AppService, TransactionService],
 })
 export class AppModule {}

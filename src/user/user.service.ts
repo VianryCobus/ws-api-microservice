@@ -6,6 +6,7 @@ import { User } from 'src/models/user.entity';
 import { Wallet } from 'src/models/wallet.entity';
 import { Repository } from 'typeorm';
 import { BalanceDto } from './dto/balance.dto';
+const logFromProvider = require('../utils/log/logFromProvider');
 
 @Injectable()
 export class UserService {
@@ -20,6 +21,13 @@ export class UserService {
   }
   async getbalance(dto: BalanceDto){
     this.logger.debug({message: 'Hit API get balance',params: dto,});
+    logFromProvider.debug({
+      message: {
+        type: 'Hit API get balance',
+        params: dto,
+      }
+    });
+
     const balance = await this.usersRepository.findOne({
       relations: {
         wallet: true,
@@ -46,6 +54,12 @@ export class UserService {
       }
     }
     this.logger.debug({message: 'Return API get balance',params: returnData,});
+    logFromProvider.debug({
+      message: {
+        type: 'Return API get balance',
+        params: returnData,
+      }
+    });
     return returnData;
   }
 }
