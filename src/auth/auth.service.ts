@@ -1,6 +1,6 @@
 import { ForbiddenException, HttpCode, HttpStatus, Injectable, Res } from "@nestjs/common";
 import { AuthDto, SignUpDto } from "./dto";
-import * as argon from 'argon2';
+import * as bcrypt from 'bcrypt';
 import { GenerateUserIdService } from "src/helper/genUserId/genUserIdHelper.service";
 import { HttpService } from "@nestjs/axios";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -36,7 +36,7 @@ export class AuthService {
     // if user doesn't exist throw exception
     if (!user) throw new ForbiddenException('Credentials incorrect, please check the user id')
     // compare password
-    const pwMatches = await argon.verify(user.hash,dto.password)
+    const pwMatches = await bcrypt.compare(dto.password,user.hash)
     // if password incorrect throw exception
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect')
     // hit api provider
@@ -97,7 +97,8 @@ export class AuthService {
 
   async signup(dto: SignUpDto) {
     // Generate the password hash
-    const hash = await argon.hash(dto.password);
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(dto.password, salt);
     // save the new user in the DB
     try {
       // get agentId from currency value

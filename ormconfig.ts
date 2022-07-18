@@ -9,7 +9,7 @@ const ormConfig: PostgresConnectionOptions = {
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DATABASE,
   entities: ['dist/src/models/**/*.entity.js'],
-  synchronize: false,
+  synchronize: true,
   logging: true,
   logger: 'file',
   migrations: [
