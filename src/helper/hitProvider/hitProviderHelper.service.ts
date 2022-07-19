@@ -51,7 +51,7 @@ export class HitProviderService {
     logFromProvider.debug({
       message: {
         type: 'Return Hit Provider API get login',
-        params: getProvider,
+        params: getProvider.data,
       }
     });
     let responseProvider: String;
