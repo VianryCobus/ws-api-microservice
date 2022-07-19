@@ -36,7 +36,7 @@ export class TransactionService {
       // find user with userId
       const user = await this.usersRepository.findOne({
         where: {
-          userId: dto.userId,
+          userAgentId: dto.userId,
         },
         relations: {
           wallet: true,

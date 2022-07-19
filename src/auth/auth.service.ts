@@ -119,6 +119,7 @@ export class AuthService {
       const userIdUpper = dto.userid
       const newUser = await this.usersRepository.create({
         userId: userIdUpper,
+        userAgentId: `${agentId}${userIdUpper}`,
         hash,
         agent, 
       });

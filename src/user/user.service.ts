@@ -33,39 +33,39 @@ export class UserService {
         wallet: true,
       },
       where: {
-        userId: dto.userId,
+        userAgentId: dto.userId,
       }
     });
     // if user and balance does not exist throw exception
     let returnData;
     if (!balance) {
+      returnData = {
+        status: "0",
+        data: {},
+        message: "882",
+      }
       logFromProvider.debug({
         message: {
           type: 'Hit API get balance [balance does not exist]',
           params: dto,
         }
       });
-      returnData = {
-        status: "0",
-        data: {},
-        message: "882",
-      }
     } else {
       returnData = {
         status: "1",
         data: {
-          CurrentCredit: Number(balance.wallet.balance).toFixed(2),
+          CurrentCredit: Number(balance.wallet.balance).toFixed(4),
         },
         message: null,
       }
+      this.logger.debug({message: 'Return API get balance',params: returnData,});
+      logFromProvider.debug({
+        message: {
+          type: 'Return API get balance',
+          params: returnData,
+        }
+      });
     }
-    this.logger.debug({message: 'Return API get balance',params: returnData,});
-    logFromProvider.debug({
-      message: {
-        type: 'Return API get balance',
-        params: returnData,
-      }
-    });
     return returnData;
   }
 }

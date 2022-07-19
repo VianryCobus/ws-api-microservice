@@ -18,6 +18,14 @@ export class User {
   @Column({
     type: 'varchar',
     length: 255,
+    unique: true,
+    nullable: true,
+  })
+  userAgentId: string;
+
+  @Column({
+    type: 'varchar',
+    length: 255,
   })
   hash: string;
 
@@ -32,7 +40,6 @@ export class User {
     cascade: true,
   })
   wallet: Wallet
-
 
   @CreateDateColumn()
   createdAt: Date;
