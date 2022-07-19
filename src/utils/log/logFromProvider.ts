@@ -1,6 +1,12 @@
 const {format, createLogger, transports} = require('winston');
 const {timestamp, combine, printf} = format;
 
+const timezoned = () => {
+  return new Date().toLocaleString('id-Id', {
+      timeZone: 'Asia/Jakarta'
+  });
+}
+
 const myFormat = format.printf(({ level, message, timestamp }) => {
   return `[${timestamp} ${level}]: {${message.type}} => ${JSON.stringify(message.params)}`;
 });
