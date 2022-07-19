@@ -29,6 +29,7 @@ export class Transaction {
 
   @Column({
     type: 'bigint',
+    unique: true,
   })
   transId: string;
 
@@ -56,6 +57,7 @@ export class Transaction {
     precision: 20,
     scale: 4,
     default: 0,
+    nullable: true,
   })
   wAmt: number;
 
@@ -71,7 +73,8 @@ export class Transaction {
     type: 'decimal',
     precision: 20,
     scale: 4,
-    default: 0
+    default: 0,
+    nullable: true,
   })
   creditDeducted: number;
 
@@ -82,10 +85,9 @@ export class Transaction {
   // winloss: WinLoss;
 
   @Column({
-    type: 'varchar',
-    length: 255,
+    nullable: true,
   })
-  winloss: string;
+  winloss: number;
 
   // @Column({
   //   type: 'enum',
@@ -93,11 +95,8 @@ export class Transaction {
   // })
   // status: Status;
 
-  @Column({
-    type: 'varchar',
-    length: 255,
-  })
-  status: string;
+  @Column()
+  status: number;
 
   @Column({
     type: 'varchar',
@@ -116,6 +115,7 @@ export class Transaction {
     precision: 20,
     scale: 4,
     default: 0,
+    nullable: true,
   })
   commPerc: number;
 
@@ -124,6 +124,7 @@ export class Transaction {
     precision: 20,
     scale: 4,
     default: 0,
+    nullable: true,
   })
   comm: number;
 
@@ -139,11 +140,8 @@ export class Transaction {
   // })
   // source: Source
 
-  @Column({
-    type: 'varchar',
-    length: 255,
-  })
-  source: string;
+  @Column()
+  source: number;
 
   @ManyToOne(() => User, (user) => user.transactions)
   @JoinColumn()

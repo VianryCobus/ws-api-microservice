@@ -50,7 +50,7 @@ import { TransactionModule } from './transaction/transaction.module';
     HitProviderModule,
     TransactionModule, 
   ],
-  controllers: [AppController, TransactionController],
-  providers: [AppService, TransactionService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

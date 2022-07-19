@@ -2,7 +2,6 @@ import { ForbiddenException, HttpCode, HttpStatus, Injectable, Res } from "@nest
 import { AuthDto, SignUpDto } from "./dto";
 import * as bcrypt from 'bcrypt';
 import { GenerateUserIdService } from "src/helper/genUserId/genUserIdHelper.service";
-import { HttpService } from "@nestjs/axios";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Currency } from "src/models/currency.entity";
@@ -24,7 +23,7 @@ export class AuthService {
   ) {}
 
   async signin(dto: AuthDto) {
-    // find the user by email
+    // find the user by userId
     const user = await this.usersRepository.findOne({
       relations: {
         agent: true,
@@ -116,7 +115,8 @@ export class AuthService {
       const agent = await this.agentsRepository.findOneBy({
         agentId: agentId,
       });
-      const userIdUpper = dto.userid.toUpperCase()
+      // const userIdUpper = dto.userid.toUpperCase()
+      const userIdUpper = dto.userid
       const newUser = await this.usersRepository.create({
         userId: userIdUpper,
         hash,
@@ -126,15 +126,26 @@ export class AuthService {
         name: `${currency.name}-${agentId}`,
         balance: 0,
       })
+      // this is make relation with cascade join
       newUser.wallet = newWallet;
+      // action save
       const userSaved = await this.usersRepository.save(newUser);
-      return {
-        status: true,
-        msg: 'signed up successfully',
-        data: {
-          userid: userSaved.userId,
-        },
+      let returnData;
+      if (userSaved) {
+        returnData = {
+          status: true,
+          msg: 'signed up successfully',
+          data: {
+            userid: userSaved.userId,
+          },
+        }
+      } else {
+        returnData = {
+          status: false,
+          msg: 'signed up failed',
+        }
       }
+      return returnData;
     } catch (error) {
       if (error.code === '23505') throw new ForbiddenException('Credentials taken, User id has been used')
       // handle error

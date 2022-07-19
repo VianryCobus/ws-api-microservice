@@ -27,18 +27,24 @@ export class UserService {
         params: dto,
       }
     });
-
+    // find user balance with userId
     const balance = await this.usersRepository.findOne({
       relations: {
         wallet: true,
       },
       where: {
-        userId: dto.userid,
+        userId: dto.userId,
       }
     });
     // if user and balance does not exist throw exception
     let returnData;
     if (!balance) {
+      logFromProvider.debug({
+        message: {
+          type: 'Hit API get balance [balance does not exist]',
+          params: dto,
+        }
+      });
       returnData = {
         status: "0",
         data: {},

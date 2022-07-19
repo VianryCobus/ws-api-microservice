@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import axios from "axios";
 // import { PrismaService } from "src/prisma/prisma.service";
+const logFromProvider = require('../../utils/log/logFromProvider');
 
 @Injectable()
 export class HitProviderService {
@@ -36,7 +37,23 @@ export class HitProviderService {
     for(const p in objAddParams) {
       objAddParams[p].value ? Url += `&${objAddParams[p].key}=${objAddParams[p].value}` : false;
     };
+    logFromProvider.debug({
+      message: {
+        type: 'Hit Provider API get login',
+        params: {
+          hashOrigin: `${apiKey}agentid=${agentId}&userid=${agentId}${userId}`,
+          hash: Hash,
+          Url: Url,
+        }
+      }
+    });
     const getProvider = await axios.post(Url,paramsJson);
+    logFromProvider.debug({
+      message: {
+        type: 'Return Hit Provider API get login',
+        params: getProvider,
+      }
+    });
     let responseProvider: String;
     switch(getProvider.data.status){
       case 'success':
