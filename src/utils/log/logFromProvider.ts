@@ -16,7 +16,8 @@ const logFromProvider = createLogger({
   // format: format.json(),
   format: combine(
     timestamp({
-      format: 'DD-MM-YYYY HH:mm:ss'
+      // format: 'DD-MM-YYYY HH:mm:ss'
+      format: timezoned
     }),
     myFormat
   ),
