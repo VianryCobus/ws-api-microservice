@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { PlaceBetDto } from './dto';
+import { Body, Controller, Get, ParseArrayPipe, Post } from '@nestjs/common';
+import { BetResultDto, PlaceBetDto } from './dto';
 import { TransactionService } from './transaction.service';
 
 @Controller('provider')
@@ -9,5 +9,10 @@ export class TransactionController {
   @Post('bet')
   placebet(@Body() dto: PlaceBetDto) {
     return this.transactionService.placebet(dto);
+  }
+
+  @Post('betresult')
+  betresult(@Body(new ParseArrayPipe({ items: BetResultDto})) dto: BetResultDto[]) {
+    return this.transactionService.betresult(dto);
   }
 }

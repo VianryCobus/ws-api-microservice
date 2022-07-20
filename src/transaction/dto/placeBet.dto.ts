@@ -20,7 +20,7 @@ export class PlaceBetDto {
   @IsNumber({ 
     maxDecimalPlaces: 4
   })
-  @Min(0.0001)
+  @Min(-9999999999999999.9999)
   @Max(9999999999999999.9999)
   @IsNotEmpty()
   bAmt: number;

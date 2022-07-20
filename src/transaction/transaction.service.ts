@@ -6,7 +6,7 @@ import { Transaction } from 'src/models/transaction.entity';
 import { User } from 'src/models/user.entity';
 import { Wallet } from 'src/models/wallet.entity';
 import { Repository } from 'typeorm';
-import { PlaceBetDto } from './dto';
+import { BetResultDto, PlaceBetDto } from './dto';
 const logFromProvider = require('../utils/log/logFromProvider');
 
 @Injectable()
@@ -175,6 +175,89 @@ export class TransactionService {
       }
       // handle error
       throw error;
+    }
+  }
+
+  async betresult(dto: BetResultDto[]){
+    this.logger.debug({
+      messsage: 'Hit API bet result',
+      params: dto,
+    });
+    logFromProvider.debug({
+      message: {
+        type: 'Hit API bet result',
+        params: dto,
+      }
+    });
+    try {
+      dto.forEach( async e => {
+        // find transction with transaction Id
+        const transaction = await this.transactionsRepository.findOne({
+          where: {
+            transId: String(e.transId)
+          },
+          relations: {
+            user: true,
+          }
+        })
+        // if trx id isn't exist throw error
+        if(!transaction) {
+          logFromProvider.debug({
+            messsage: {
+              type: `Hit API bet result [transId : ${e.transId} isn't exist]`,
+              params: e,
+            }
+          });
+        } else {
+          // mapping new data
+          transaction.ticketBetId = e.id;
+          transaction.sDate = new Date(e.sDate);
+          transaction.bAmt = e.bAmt;
+          transaction.wAmt = e.wAmt;
+          transaction.odds = e.odds;
+          transaction.commPerc = e.commPerc;
+          transaction.comm = e.comm;
+          transaction.payout = e.payout;
+          transaction.creditDeducted = e.creditDeducted;
+          transaction.winloss = e.winloss;
+          transaction.status = e.status;
+          // save data transaction
+          const transactionSaved = await this.transactionsRepository.save(transaction);
+
+          if(!transactionSaved) {
+            logFromProvider.debug({
+              message: {
+                type: `Hit API bet result [Failed Save transaction Data, transId : ${e.transId}]`,
+                params: transaction,
+              }
+            });
+          }
+        }
+      });
+      logFromProvider.debug({
+        message: {
+          type: 'Hit API bet result [Success Bet Result]',
+          params: dto,
+        }
+      });
+      return {
+        status: "1",
+        message: ""
+      }
+    } catch(error) {
+      logFromProvider.debug({
+        message: {
+          type: 'Hit API bet result [Error from catch]',
+          params: error,
+        }
+      });
+      // handle error
+      return {
+        status: "0",
+        data: {},
+        message: "550"
+      }
+      // throw error;
     }
   }
 }
