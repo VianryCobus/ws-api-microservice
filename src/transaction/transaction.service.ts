@@ -92,6 +92,7 @@ export class TransactionService {
         game: dto.game,
         source: dto.source,
         status: dto.status,
+        ep: 'bet'
       });
 
       // create new wallet object
@@ -261,6 +262,7 @@ export class TransactionService {
                 creditDeducted: e.creditDeducted,
                 winloss: e.winloss,
                 status: e.status,
+                ep: 'betresult'
               });
               // save data transaction
               const transactionSaved = await this.transactionsRepository.save(newTransaction);
@@ -329,5 +331,9 @@ export class TransactionService {
       }
       // throw error;
     }
+  }
+
+  async rollbackBetResult(){
+    return 'hi';
   }
 }

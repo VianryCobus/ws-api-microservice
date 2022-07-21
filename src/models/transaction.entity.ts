@@ -147,6 +147,13 @@ export class Transaction {
   })
   source: number;
 
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  ep: string;
+
   @ManyToOne(() => User, (user) => user.transactions)
   @JoinColumn()
   user: User

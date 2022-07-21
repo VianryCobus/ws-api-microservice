@@ -15,4 +15,10 @@ export class TransactionController {
   betresult(@Body(new ParseArrayPipe({ items: BetResultDto})) dto: BetResultDto[]) {
     return this.transactionService.betresult(dto);
   }
+
+  @Post('rollback')
+  rollbackBetResult() {
+    return this.transactionService.rollbackBetResult();
+  }
+
 }
