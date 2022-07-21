@@ -101,6 +101,7 @@ export class Transaction {
   @Column({
     type: 'varchar',
     length: 255,
+    nullable: true,
   })
   ip: string;
 
@@ -131,6 +132,7 @@ export class Transaction {
   @Column({
     type: 'varchar',
     length: 255,
+    nullable: true,
   })
   game: string;
 
@@ -140,7 +142,9 @@ export class Transaction {
   // })
   // source: Source
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   source: number;
 
   @ManyToOne(() => User, (user) => user.transactions)

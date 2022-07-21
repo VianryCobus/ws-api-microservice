@@ -124,7 +124,12 @@ export class TransactionService {
         logFromProvider.debug({
           message: {
             type: 'Hit API place bet [Failed Save Wallet Data]',
-            params: updatedWallet,
+            params: {
+              beforeBalance,
+              afterBalance,
+              payout,
+              updatedWallet,
+            }
           }
         });
         return {
@@ -180,7 +185,7 @@ export class TransactionService {
 
   async betresult(dto: BetResultDto[]){
     this.logger.debug({
-      messsage: 'Hit API bet result',
+      message: 'Hit API bet result',
       params: dto,
     });
     logFromProvider.debug({
@@ -194,7 +199,7 @@ export class TransactionService {
         // find transction with transaction Id
         const transaction = await this.transactionsRepository.findOne({
           where: {
-            transId: String(e.transId)
+            ticketBetId: e.id
           },
           relations: {
             user: true,
@@ -203,34 +208,99 @@ export class TransactionService {
         // if trx id isn't exist throw error
         if(!transaction) {
           logFromProvider.debug({
-            messsage: {
-              type: `Hit API bet result [transId : ${e.transId} isn't exist]`,
+            message: {
+              type: `Hit API bet result [ticket (BET id) : ${e.id} isn't exist]`,
               params: e,
             }
           });
         } else {
-          // mapping new data
-          transaction.ticketBetId = e.id;
-          transaction.sDate = new Date(e.sDate);
-          transaction.bAmt = e.bAmt;
-          transaction.wAmt = e.wAmt;
-          transaction.odds = e.odds;
-          transaction.commPerc = e.commPerc;
-          transaction.comm = e.comm;
-          transaction.payout = e.payout;
-          transaction.creditDeducted = e.creditDeducted;
-          transaction.winloss = e.winloss;
-          transaction.status = e.status;
-          // save data transaction
-          const transactionSaved = await this.transactionsRepository.save(transaction);
-
-          if(!transactionSaved) {
+          // find user with userId
+          const user = await this.usersRepository.findOne({
+            where: {
+              userAgentId: e.userId,
+            },
+            relations: {
+              wallet: true,
+            }
+          });
+          // if user doesn't exists return status 0
+          if (!user) {
             logFromProvider.debug({
               message: {
-                type: `Hit API bet result [Failed Save transaction Data, transId : ${e.transId}]`,
-                params: transaction,
+                type: `Hit API bet result [userId : ${e.userId} isn't exist]`,
+                params: e,
               }
             });
+          } else {
+            // get balance from wallet and count that
+            const beforeBalance = Number(user.wallet.balance);
+            const payout = Number(e.payout);
+            // check balance on wallet, if insufficient, return status 0 and log that
+            if (beforeBalance + payout < 0) {
+              logFromProvider.debug({
+                message: {
+                  type: `Hit API bet result [Insufficient Balance when process transId : ${e.transId}]`,
+                  params: {
+                    beforeBalance,
+                    payout
+                  }
+                }
+              });
+            } else {
+              // mapping new data
+              const newTransaction = await this.transactionsRepository.create({
+                user,
+                transId: String(e.transId),
+                ticketBetId: e.id,
+                sDate: e.sDate,
+                bAmt: e.bAmt,
+                odds: e.odds,
+                commPerc: e.commPerc,
+                comm: e.comm,
+                payout: e.payout,
+                creditDeducted: e.creditDeducted,
+                winloss: e.winloss,
+                status: e.status,
+              });
+              // save data transaction
+              const transactionSaved = await this.transactionsRepository.save(newTransaction);
+
+              if(!transactionSaved) {
+                logFromProvider.debug({
+                  message: {
+                    type: `Hit API bet result [Failed Save transaction Data, transId : ${e.transId}]`,
+                    params: transaction,
+                  }
+                });
+              }
+
+              // count after balance
+              const afterBalance = beforeBalance + payout;
+              
+              // create new wallet object
+              const updatedWallet = await this.walletsRepository.findOne({
+                where: {
+                  id: user.wallet.id,
+                }
+              });
+              updatedWallet.balance = afterBalance;
+
+              const walletSaved = await this.walletsRepository.save(updatedWallet);
+
+              if(!walletSaved) {
+                logFromProvider.debug({
+                  message: {
+                    type: `Hit API bet result [Failed Save wallet Balance], transId : ${e.transId}`,
+                    params: {
+                      beforeBalance,
+                      afterBalance,
+                      payout,
+                      updatedWallet,
+                    }
+                  }
+                });
+              }
+            }
           }
         }
       });
