@@ -1,12 +1,14 @@
 import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { check } from 'prettier';
 import { Agent } from 'src/models/agent.entity';
 import { Currency } from 'src/models/currency.entity';
 import { Transaction } from 'src/models/transaction.entity';
 import { User } from 'src/models/user.entity';
 import { Wallet } from 'src/models/wallet.entity';
 import { Repository } from 'typeorm';
-import { BetResultDto, PlaceBetDto } from './dto';
+import { BetResultDto, CancelBetDto, PlaceBetDto } from './dto';
+import { RollbackBetResultDto } from './dto/rollbackBetResult.dto';
 const logFromProvider = require('../utils/log/logFromProvider');
 
 @Injectable()
@@ -21,17 +23,15 @@ export class TransactionService {
   ) {
     this.logger = new Logger();
   }
-  async placebet(dto: PlaceBetDto){
+  async placeBet(dto: PlaceBetDto){
     this.logger.debug({
       message: 'Hit API place bet',
       params: dto,
     });
-    logFromProvider.debug({
-      message: {
-        type: 'Hit API place bet',
-        params: dto,
-      }
-    });
+    await this.debugLog(
+      'Hit Api place bet',
+      dto
+    );
     try {
       // find user with userId
       const user = await this.usersRepository.findOne({
@@ -44,12 +44,10 @@ export class TransactionService {
       });
       // if user doesn't exists return status 0
       if (!user) {
-        logFromProvider.debug({
-          message: {
-            type: 'Hit API place bet [user does not exist]',
-            params: dto,
-          }
-        });
+        await this.debugLog(
+          'Hit API place bet [user does not exist]',
+          dto
+        );
         return {
           status: "0",
           data: {},
@@ -60,24 +58,21 @@ export class TransactionService {
       const beforeBalance = Number(user.wallet.balance);
       const payout = Number(dto.payout);
       // check balance on wallet, if insufficient, return status 0 and log that
-      if (beforeBalance + payout < 0) {
-        logFromProvider.debug({
-          message: {
-            type: 'Hit API place bet [Insufficient Balance]',
-            params: {
-              dto,
-              balance: beforeBalance
-            },
+      const checkBalance = await this.checkBalance(beforeBalance,payout);
+      if (!checkBalance.status) {
+        await this.debugLog(
+          'Hit API place bet [Insufficient Balance]',
+          {
+            dto,
+            balance: beforeBalance,
           }
-        });
+        );
         return {
           status: "0",
           data: {},
           message: "571",
         }
       }
-      // count it
-      const afterBalance = beforeBalance + payout;
 
       // create new transaction object
       const newTransaction = await this.transactionsRepository.create({
@@ -101,17 +96,15 @@ export class TransactionService {
           id: user.wallet.id,
         }
       });
-      updatedWallet.balance = afterBalance;
+      updatedWallet.balance = checkBalance.afterBalance;
 
       const transactionSaved = await this.transactionsRepository.save(newTransaction);
 
       if(!transactionSaved) {
-        logFromProvider.debug({
-          message: {
-            type: 'Hit API place bet [Failed Save Transaction Data]',
-            params: newTransaction,
-          }
-        });
+        await this.debugLog(
+          'Hit API place bet [Failed Save Transaction]',
+          newTransaction
+        );
         return {
           status: "0",
           data: {},
@@ -122,17 +115,15 @@ export class TransactionService {
       const walletSaved = await this.walletsRepository.save(updatedWallet);
 
       if(!walletSaved) {
-        logFromProvider.debug({
-          message: {
-            type: 'Hit API place bet [Failed Save Wallet Data]',
-            params: {
-              beforeBalance,
-              afterBalance,
-              payout,
-              updatedWallet,
-            }
+        await this.debugLog(
+          'Hit API place bet [Failed Save Wallet Data]',
+          {
+            beforeBalance,
+            afterBalance: checkBalance.afterBalance,
+            payout,
+            updatedWallet,
           }
-        });
+        );
         return {
           status: "0",
           data: {},
@@ -144,60 +135,56 @@ export class TransactionService {
         message: 'Hit API place bet [Success Place Bet]',
         params: dto,
       });
-      logFromProvider.debug({
-        message: {
-          type: 'Hit API place bet [Success Place Bet]',
-          params: {
-            data: {
-              userId: user.userId,
-              beforeBalance: beforeBalance,
-              afterBalance: afterBalance,
-            },
-            status: 1,
-            message: ""
+      await this.debugLog(
+        'Hit API place bet [Success Place Bet]',
+        {
+          data: {
+            userId: user.userId,
+            beforeBalance,
+            afterBalance: checkBalance.afterBalance,
           },
+          status: 1,
+          message: "",
         }
-      });
+      );
 
       // return success params
       return {
         data: {
           userId: user.userId,
           beforeBalance: beforeBalance,
-          afterBalance: afterBalance,
+          afterBalance: checkBalance.afterBalance,
         },
         status: 1,
         message: "",
       };
     } catch(error) {
       if (error.code === '23505') {
-        logFromProvider.debug({
-          message: {
-            type: 'Hit API place bet [Duplicate Trans Id]',
-            params: '',
-          }
-        });
-        throw new ForbiddenException('Duplicate Trans Id')
+        await this.debugLog(
+          'Hit API place bet [Duplicate Trans Id]',
+          {
+            transId: dto.transId,
+          },
+        );
+        throw new ForbiddenException(`Duplicate Trans Id, transId : ${dto.transId}`)
       }
       // handle error
       throw error;
     }
   }
 
-  async betresult(dto: BetResultDto[]){
+  async betResult(dto: BetResultDto[]){
     this.logger.debug({
       message: 'Hit API bet result',
       params: dto,
     });
-    logFromProvider.debug({
-      message: {
-        type: 'Hit API bet result',
-        params: dto,
-      }
-    });
+    await this.debugLog(
+      'Hit API bet result',
+      dto,
+    );
     try {
-      dto.forEach( async e => {
-        // find transction with transaction Id
+      for (const e of dto) {
+        // find transaction with ticket bet Id
         const transaction = await this.transactionsRepository.findOne({
           where: {
             ticketBetId: e.id
@@ -208,12 +195,16 @@ export class TransactionService {
         })
         // if trx id isn't exist throw error
         if(!transaction) {
-          logFromProvider.debug({
-            message: {
-              type: `Hit API bet result [ticket (BET id) : ${e.id} isn't exist]`,
-              params: e,
-            }
-          });
+          await this.debugLog(
+            `Hit API bet result [ticket (BET id) : ${e.id} isn't exist]`,
+            e,
+          );
+          // handle error
+          return {
+            status: "0",
+            data: {},
+            message: "550"
+          }
         } else {
           // find user with userId
           const user = await this.usersRepository.findOne({
@@ -226,27 +217,36 @@ export class TransactionService {
           });
           // if user doesn't exists return status 0
           if (!user) {
-            logFromProvider.debug({
-              message: {
-                type: `Hit API bet result [userId : ${e.userId} isn't exist]`,
-                params: e,
-              }
-            });
+            await this.debugLog(
+              `Hit API bet result [userId : ${e.userId} isn't exist]`,
+              e,
+            );
+            // handle error
+            return {
+              status: "0",
+              data: {},
+              message: "550"
+            }
           } else {
             // get balance from wallet and count that
             const beforeBalance = Number(user.wallet.balance);
             const payout = Number(e.payout);
             // check balance on wallet, if insufficient, return status 0 and log that
-            if (beforeBalance + payout < 0) {
-              logFromProvider.debug({
-                message: {
-                  type: `Hit API bet result [Insufficient Balance when process transId : ${e.transId}]`,
-                  params: {
-                    beforeBalance,
-                    payout
-                  }
+            const checkBalance = await this.checkBalance(beforeBalance,payout);
+            if (!checkBalance.status) {
+              await this.debugLog(
+                `Hit API bet result [Insufficient Balance when process transId : ${e.transId}]`,
+                {
+                  beforeBalance,
+                  payout
                 }
-              });
+              );
+              // handle error
+              return {
+                status: "0",
+                data: {},
+                message: "571"
+              }
             } else {
               // mapping new data
               const newTransaction = await this.transactionsRepository.create({
@@ -268,16 +268,17 @@ export class TransactionService {
               const transactionSaved = await this.transactionsRepository.save(newTransaction);
 
               if(!transactionSaved) {
-                logFromProvider.debug({
-                  message: {
-                    type: `Hit API bet result [Failed Save transaction Data, transId : ${e.transId}]`,
-                    params: transaction,
-                  }
-                });
+                await this.debugLog(
+                  `Hit API bet result [Failed Save transaction Data, transId : ${e.transId}]`,
+                  transaction,
+                );
+                // handle error
+                return {
+                  status: "0",
+                  data: {},
+                  message: "550"
+                }
               }
-
-              // count after balance
-              const afterBalance = beforeBalance + payout;
               
               // create new wallet object
               const updatedWallet = await this.walletsRepository.findOne({
@@ -285,55 +286,411 @@ export class TransactionService {
                   id: user.wallet.id,
                 }
               });
-              updatedWallet.balance = afterBalance;
+              updatedWallet.balance = checkBalance.afterBalance;
 
               const walletSaved = await this.walletsRepository.save(updatedWallet);
 
               if(!walletSaved) {
-                logFromProvider.debug({
-                  message: {
-                    type: `Hit API bet result [Failed Save wallet Balance], transId : ${e.transId}`,
-                    params: {
-                      beforeBalance,
-                      afterBalance,
-                      payout,
-                      updatedWallet,
-                    }
+                await this.debugLog(
+                  `Hit API bet result [Failed Save wallet Balance], transId : ${e.transId}`,
+                  {
+                    beforeBalance,
+                    afterBalance: checkBalance.afterBalance,
+                    payout,
+                    updatedWallet,
                   }
-                });
+                );
+                // handle error
+                return {
+                  status: "0",
+                  data: {},
+                  message: "550"
+                }
               }
             }
           }
         }
-      });
-      logFromProvider.debug({
-        message: {
-          type: 'Hit API bet result [Success Bet Result]',
-          params: dto,
-        }
-      });
+      };
+      await this.debugLog(
+        `Hit API bet result [Success Bet Result]`,
+        dto,
+      );
       return {
         status: "1",
-        message: ""
+        message: "",
       }
     } catch(error) {
-      logFromProvider.debug({
-        message: {
-          type: 'Hit API bet result [Error from catch]',
-          params: error,
-        }
-      });
+      if (error.code === '23505') {
+        await this.debugLog(
+          `Hit API bet result [Duplicate Trans Id]`,
+          ''
+        );
+        throw new ForbiddenException('Duplicate Trans Id');
+      }
+      await this.debugLog(
+        `Hit API bet result [Error from catch]`,
+        error
+      );
       // handle error
       return {
         status: "0",
         data: {},
         message: "550"
       }
-      // throw error;
     }
   }
 
-  async rollbackBetResult(){
-    return 'hi';
+  async rollbackBetResult(dto: RollbackBetResultDto[]){
+    this.logger.debug({
+      message: 'Hit API rollback bet result',
+      params: dto,
+    });
+    await this.debugLog(
+      'Hit API rollback bet result',
+      dto,
+    );
+    try {
+      for (const e of dto) {
+        // find transaction with ticket bet Id
+        const transaction = await this.transactionsRepository.findOne({
+          where: {
+            ticketBetId: e.id
+          },
+          relations: {
+            user: true,
+          }
+        })
+        // if trx id isn't exist throw error
+        if(!transaction) {
+          await this.debugLog(
+            `Hit API rollback bet result [ticket (BET id) : ${e.id} isn't exist ]`,
+            e
+          );
+          // handle error
+          return {
+            status: "0",
+            data: {},
+            message: "550"
+          }
+        } else {
+          // find user with userId
+          const user = await this.usersRepository.findOne({
+            where: {
+              userAgentId: e.userId,
+            },
+            relations: {
+              wallet: true,
+            }
+          });
+          // if user doesn't exists return status 0
+          if (!user) {
+            await this.debugLog(
+              `Hit API rollback bet result [userId : ${e.userId} isn't exist]`,
+              e
+            );
+            // handle error
+            return {
+              status: "0",
+              data: {},
+              message: "550"
+            }
+          } else {
+            // get balance from wallet and count that
+            const beforeBalance = Number(user.wallet.balance);
+            const payout = Number(e.payout);
+            // check balance on wallet, if insufficient, return status 0 and log that
+            const checkBalance = await this.checkBalance(beforeBalance, payout);
+            if (!checkBalance.status) {
+              await this.debugLog(
+                `Hit API rollback bet result [Insufficient Balance when process transId: ${e.transId}]`,
+                {
+                  beforeBalance,
+                  payout
+                }
+              );
+              // handle error
+              return {
+                status: "0",
+                data: {},
+                message: "571"
+              }
+            } else {
+              // mapping new data
+              const newTransaction = await this.transactionsRepository.create({
+                user,
+                transId: String(e.transId),
+                ticketBetId: e.id,
+                sDate: e.sDate,
+                bAmt: e.bAmt,
+                odds: e.odds,
+                commPerc: e.commPerc,
+                comm: e.comm,
+                payout: e.payout,
+                creditDeducted: e.creditDeducted,
+                winloss: e.winloss,
+                status: e.status,
+                ep: 'rollback',
+              });
+              // save data transaction
+              const transactionSaved = await this.transactionsRepository.save(newTransaction);
+
+              if(!transactionSaved) {
+                await this.debugLog(
+                  `Hit API bet result [Failed Save transaction Data, transId : ${e.transId}]`,
+                  transaction,
+                );
+                // handle error
+                return {
+                  status: "0",
+                  data: {},
+                  message: "550"
+                }
+              }
+
+              // create new wallet object
+              const updatedWallet = await this.walletsRepository.findOne({
+                where: {
+                  id: user.wallet.id,
+                }
+              });
+              updatedWallet.balance = checkBalance.afterBalance;
+
+              const walletSaved = await this.walletsRepository.save(updatedWallet);
+
+              if(!walletSaved) {
+                await this.debugLog(
+                  `Hit API bet result [Failed Save wallet Balance], transId : ${e.transId}`,
+                  {
+                    beforeBalance,
+                    afterBalance: checkBalance.afterBalance,
+                    payout,
+                    updatedWallet,
+                  }
+                );
+                // handle error
+                return {
+                  status: "0",
+                  data: {},
+                  message: "550"
+                }
+              }
+            }
+          }
+        }
+      };
+      await this.debugLog(
+        `Hit API rollback bet result [Success Rollback Bet Result]`,
+        dto,
+      );
+      return {
+        status: "1",
+        message: "",
+      }
+    } catch (error) {
+      if (error.code === '23505') {
+        await this.debugLog(
+          `Hit API rollback bet result [Duplicate Trans Id]`,
+          ''
+        );
+        throw new ForbiddenException('Duplicate Trans Id');
+      }
+      await this.debugLog(
+        'Hit API rollback bet result [Error from catch]',
+        error,
+      );
+      // handle error
+      return {
+        status: "0",
+        data: {},
+        message: "550"
+      }
+    }
+  }
+
+  async cancelBet(dto: CancelBetDto[]){
+    this.logger.debug({
+      message: 'Hit API cancel bet',
+      params: dto,
+    });
+    await this.debugLog(
+      'Hit API cancel bet',
+      dto,
+    );
+    try {
+      for (const e of dto) {
+        // find transaction with ticket bet Id
+        const transaction = await this.transactionsRepository.findOne({
+          where: {
+            ticketBetId: e.id
+          },
+          relations: {
+            user: true,
+          }
+        });
+        // if trx id isn't exist throw error
+        if(!transaction) {
+          await this.debugLog(
+            `Hit API cancel bet [ticket (BET id) : ${e.id} isn't exit]`,
+            e
+          );
+          // handle error
+          return {
+            status: "0",
+            data: {},
+            message: "550"
+          }
+        } else {
+          // find user with userId
+          const user = await this.usersRepository.findOne({
+            where: {
+              userAgentId: e.userId,
+            },
+            relations: {
+              wallet: true,
+            }
+          });
+          // if user doesn't exists return status 0
+          if (!user) {
+            await this.debugLog(
+              `Hit API cancel bet [userId : ${e.userId} isn't exist]`,
+              e
+            );
+            // handle error
+            return {
+              status: "0",
+              data: {},
+              message: "550"
+            }
+          } else {
+            // get balance from wallet and count that
+            const beforeBalance = Number(user.wallet.balance);
+            const payout = Number(e.payout);
+            // check balance on wallet, if insufficient, return status 0 and log that
+            const checkBalance = await this.checkBalance(beforeBalance, payout);
+            if(!checkBalance.status) {
+              await this.debugLog(
+                `Hit API cancel bet [Insufficient Balance when process transId: ${e.transId}]`,
+                {
+                  beforeBalance,
+                  payout
+                }
+              )
+              // handle error
+              return {
+                status: "0",
+                data: {},
+                message: "571"
+              }
+            } else {
+              // mapping new data
+              const newTransaction = await this.transactionsRepository.create({
+                user,
+                transId: String(e.transId),
+                ticketBetId: e.id,
+                sDate: e.sDate,
+                bAmt: e.bAmt,
+                payout: e.payout,
+                ip: e.ip,
+                odds: e.odds,
+                game: e.game,
+                source: e.source,
+                status: e.status,
+                ep: 'betcancel',
+              });
+              // save data transaction
+              const transactionSaved = await this.transactionsRepository.save(newTransaction);
+
+              if(!transactionSaved) {
+                await this.debugLog(
+                  `Hit API cancel bet [Failed Save transaction Data, transId : ${e.transId}]`,
+                  transaction,
+                );
+                // handle error
+                return {
+                  status: "0",
+                  data: {},
+                  message: "550"
+                }
+              }
+
+              // create new wallet object
+              const updatedWallet = await this.walletsRepository.findOne({
+                where: {
+                  id: user.wallet.id,
+                }
+              });
+              updatedWallet.balance = checkBalance.afterBalance;
+
+              const walletSaved = await this.walletsRepository.save(updatedWallet);
+
+              if(!walletSaved) {
+                await this.debugLog(
+                  `Hit API cancel bet [Failed Save wallet Balance], transId : ${e.transId}`,
+                  {
+                    beforeBalance,
+                    afterBalance: checkBalance.afterBalance,
+                    payout,
+                    updatedWallet,
+                  }
+                );
+                // handle error
+                return {
+                  status: "0",
+                  data: {},
+                  message: "550"
+                }
+              }
+            }
+          }
+        }
+      }
+      await this.debugLog(
+        `Hit API cancel bet [Success Cancel Bet]`,
+        dto,
+      );
+      return {
+        status: "1",
+        message: "",
+      }
+    } catch (error) {
+      if (error.code === '23505') {
+        await this.debugLog(
+          `Hit API cancel bet [Duplicate Trans Id]`,
+          ''
+        );
+        throw new ForbiddenException('Duplicate Trans Id');
+      }
+      await this.debugLog(
+        'Hit API cancel bet [Error from catch]',
+        error,
+      );
+      // handle error
+      return {
+        status: "0",
+        data: {},
+        message: "550"
+      }
+    }
+  }
+
+  public checkBalance(before: number,payout: number){
+    if(before + payout < 0) {
+      return {
+        status: false,
+      }
+    }
+    return {
+      status: true,
+      afterBalance: before + payout,
+    }
+  }
+
+  public debugLog(type: string,params: any){
+    return logFromProvider.debug({
+      message: {
+        type,
+        params,
+      }
+    });
   }
 }
