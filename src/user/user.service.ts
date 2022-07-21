@@ -20,13 +20,14 @@ export class UserService {
     this.logger = new Logger();
   }
   async getbalance(dto: BalanceDto){
-    this.logger.debug({message: 'Hit API get balance',params: dto,});
-    logFromProvider.debug({
-      message: {
-        type: 'Hit API get balance',
-        params: dto,
-      }
-    });
+    // this.logger.debug({message: 'Hit API get balance',params: dto,});
+    // logFromProvider.debug({
+    //   message: {
+    //     type: 'Hit API get balance',
+    //     params: dto,
+    //   }
+    // });
+
     // find user balance with userId
     const balance = await this.usersRepository.findOne({
       relations: {
@@ -58,13 +59,13 @@ export class UserService {
         },
         message: null,
       }
-      this.logger.debug({message: 'Return API get balance',params: returnData,});
-      logFromProvider.debug({
-        message: {
-          type: 'Return API get balance',
-          params: returnData,
-        }
-      });
+      // this.logger.debug({message: 'Return API get balance',params: returnData,});
+      // logFromProvider.debug({
+      //   message: {
+      //     type: 'Return API get balance',
+      //     params: returnData,
+      //   }
+      // });
     }
     return returnData;
   }
