@@ -9,10 +9,10 @@ import { Wallet } from 'src/models/wallet.entity';
 import { Repository } from 'typeorm';
 import { BetResultDto, CancelBetDto, PlaceBetDto } from './dto';
 import { RollbackBetResultDto } from './dto/rollbackBetResult.dto';
-const logFromProvider = require('../utils/log/logFromProvider');
 
 @Injectable()
 export class TransactionService {
+  private logFromProvider = require('../utils/log/logFromProvider');
   logger: Logger;
   constructor(
     @InjectRepository(Currency) private currenciesRepository: Repository<Currency>,
@@ -673,7 +673,7 @@ export class TransactionService {
     }
   }
 
-  public checkBalance(before: number,payout: number){
+  checkBalance(before: number,payout: number){
     if(before + payout < 0) {
       return {
         status: false,
@@ -685,8 +685,8 @@ export class TransactionService {
     }
   }
 
-  public debugLog(type: string,params: any){
-    return logFromProvider.debug({
+  debugLog(type: string,params: any){
+    return this.logFromProvider.debug({
       message: {
         type,
         params,

@@ -6,10 +6,10 @@ import { User } from 'src/models/user.entity';
 import { Wallet } from 'src/models/wallet.entity';
 import { Repository } from 'typeorm';
 import { BalanceDto } from './dto/balance.dto';
-const logFromProvider = require('../utils/log/logFromProvider');
 
 @Injectable()
 export class UserService {
+  private logFromProvider = require('../utils/log/logFromProvider');
   logger: Logger;
   constructor(
     @InjectRepository(Currency) private currenciesRepository: Repository<Currency>,
@@ -21,7 +21,7 @@ export class UserService {
   }
   async getbalance(dto: BalanceDto){
     // this.logger.debug({message: 'Hit API get balance',params: dto,});
-    // logFromProvider.debug({
+    // this.logFromProvider.debug({
     //   message: {
     //     type: 'Hit API get balance',
     //     params: dto,
@@ -45,12 +45,12 @@ export class UserService {
         data: {},
         message: "882",
       }
-      logFromProvider.debug({
-        message: {
-          type: 'Hit API get balance [balance does not exist]',
-          params: dto,
-        }
-      });
+      // this.logFromProvider.debug({
+      //   message: {
+      //     type: 'Hit API get balance [balance does not exist]',
+      //     params: dto,
+      //   }
+      // });
     } else {
       returnData = {
         status: "1",
@@ -60,7 +60,7 @@ export class UserService {
         message: null,
       }
       // this.logger.debug({message: 'Return API get balance',params: returnData,});
-      // logFromProvider.debug({
+      // this.logFromProvider.debug({
       //   message: {
       //     type: 'Return API get balance',
       //     params: returnData,

@@ -1,5 +1,5 @@
 import { ForbiddenException, HttpCode, HttpStatus, Injectable, Res } from "@nestjs/common";
-import { AuthDto, SignUpDto } from "./dto";
+import { AuthDto, LogoutDto, SignUpDto } from "./dto";
 import * as bcrypt from 'bcrypt';
 import { GenerateUserIdService } from "src/helper/genUserId/genUserIdHelper.service";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -33,7 +33,7 @@ export class AuthService {
       }
     });
     // if user doesn't exist throw exception
-    if (!user) throw new ForbiddenException('Credentials incorrect, please check the user id')
+    if (!user) throw new ForbiddenException('Credentials incorrect, please check the user id');
     // compare password
     const pwMatches = await bcrypt.compare(dto.password,user.hash)
     // if password incorrect throw exception
@@ -83,15 +83,26 @@ export class AuthService {
       maxbetgrpotherssport: dto.maxbetgrpotherssport,
       maxpermatchgrpotherssport: dto.maxpermatchgrpotherssport,
     }
+    // hit provider in order to hit provider endpoint
+    let responseToUser: any;
     const hitProvider = await this.hitProviderService.login(params,paramsJson);
     // send back the user
-
-    return {
-      status: true,
-      msg: 'signed in',
-      data: user.userId,
-      loginUrl: hitProvider,
+    if(hitProvider.status){
+      responseToUser = {
+        status: true,
+        msg: 'signed in',
+        data: user.userId,
+        loginUrl: hitProvider,
+      }
+    } else {
+      responseToUser = {
+        status: true,
+        msg: hitProvider.message,
+        data: user.userId,
+        loginUrl: null,
+      }
     }
+    return responseToUser;
   }
 
   async signup(dto: SignUpDto) {
@@ -152,5 +163,41 @@ export class AuthService {
       // handle error
       throw error;
     }
+  }
+
+  async signout(dto: LogoutDto) {
+    // find the user by userId
+    const user = await this.usersRepository.findOne({
+      relations: {
+        agent: true,
+      },
+      where: {
+        userId: dto.userId
+      }
+    });
+    // if user doesn't exist throw exception
+    if (!user) throw new ForbiddenException('Credentials incorrect, please check the userId');
+    // hit provider in order to hit provider endpoint
+    const params = {
+      apiKey: user.agent.apiKey,
+      agentId: user.agent.agentId,
+      userId: user.userId,
+    };
+    let responseToUser: Object;
+    const hitProvider: any = await this.hitProviderService.logout(params);
+    if(hitProvider){
+      responseToUser = {
+        status: true,
+        msg: 'signed out',
+        data: user.userId,
+      }
+    } else {
+      responseToUser = {
+        status: false,
+        msg: 'failed signed out',
+        data: user.userId,
+      }
+    }
+    return responseToUser;
   }
 }
