@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Balance } from "./historyBalance.entity";
 import { User } from "./user.entity";
 
 @Entity('Wallets')
@@ -23,6 +24,9 @@ export class Wallet {
   @OneToOne(() => User, (user) => user.wallet)
   @JoinColumn()
   user: User
+
+  @OneToMany(() => Balance, (balance) => balance.wallet)
+  balances: Balance[]
 
   @CreateDateColumn()
   createdAt: Date;

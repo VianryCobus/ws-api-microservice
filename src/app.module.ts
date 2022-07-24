@@ -43,7 +43,7 @@ import { TransactionModule } from './transaction/transaction.module';
     //     migrationsDir: 'src/db/migrations'
     //   }
     // }),
-    UserModule, 
+    UserModule,
     AuthModule,
     // PrismaModule,
     GenerateUserIdModule,

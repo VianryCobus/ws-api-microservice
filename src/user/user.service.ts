@@ -1,5 +1,7 @@
+import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Queue } from 'bull';
 import { Agent } from 'http';
 import { Currency } from 'src/models/currency.entity';
 import { User } from 'src/models/user.entity';
@@ -16,10 +18,19 @@ export class UserService {
     @InjectRepository(User) private usersRepository: Repository<User>,
     @InjectRepository(Wallet) private walletsRepository: Repository<Wallet>,
     @InjectRepository(Agent) private agentsRepository: Repository<Agent>,
+    // @InjectQueue('ws-queue') private queue:Queue,
   ){
     this.logger = new Logger();
   }
   async getbalance(dto: BalanceDto){
+    // add to queue
+    // await this.queue.add('balance-history-job',{
+    //   text:dto.userId
+    // },{
+    //   delay: 10000,
+    //   removeOnComplete: true,
+    // });
+
     // this.logger.debug({message: 'Hit API get balance',params: dto,});
     // this.logFromProvider.debug({
     //   message: {
@@ -68,5 +79,24 @@ export class UserService {
       // });
     }
     return returnData;
+  }
+
+  // ==== function return promise
+
+  // get user by agentUserId
+  async getOneUserByAgentUserId(userAgentId: string): Promise<User> {
+    try {
+      const user = await this.usersRepository.findOne({
+        where: {
+          userAgentId: userAgentId,
+        },
+        relations: {
+          wallet: true,
+        }
+      });
+      return user;
+    } catch (err) {
+      throw err;
+    }
   }
 }

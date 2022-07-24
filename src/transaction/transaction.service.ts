@@ -1,11 +1,14 @@
+import { InjectQueue } from '@nestjs/bull';
 import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Queue } from 'bull';
 import { check } from 'prettier';
 import { Agent } from 'src/models/agent.entity';
 import { Currency } from 'src/models/currency.entity';
 import { Transaction } from 'src/models/transaction.entity';
 import { User } from 'src/models/user.entity';
 import { Wallet } from 'src/models/wallet.entity';
+import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { BetResultDto, CancelBetDto, PlaceBetDto } from './dto';
 import { RollbackBetResultDto } from './dto/rollbackBetResult.dto';
@@ -20,6 +23,8 @@ export class TransactionService {
     @InjectRepository(Wallet) private walletsRepository: Repository<Wallet>,
     @InjectRepository(Agent) private agentsRepository: Repository<Agent>,
     @InjectRepository(Transaction) private transactionsRepository: Repository<Transaction>,
+    @InjectQueue('ws-queue') private queue:Queue,
+    private userService: UserService
   ) {
     this.logger = new Logger();
   }
@@ -34,14 +39,7 @@ export class TransactionService {
     );
     try {
       // find user with userId
-      const user = await this.usersRepository.findOne({
-        where: {
-          userAgentId: dto.userId,
-        },
-        relations: {
-          wallet: true,
-        }
-      });
+      const user = await this.userService.getOneUserByAgentUserId(dto.userId);
       // if user doesn't exists return status 0
       if (!user) {
         await this.debugLog(
@@ -98,6 +96,7 @@ export class TransactionService {
       });
       updatedWallet.balance = checkBalance.afterBalance;
 
+      // save new transaction data
       const transactionSaved = await this.transactionsRepository.save(newTransaction);
 
       if(!transactionSaved) {
@@ -112,9 +111,11 @@ export class TransactionService {
         }
       }
 
+      // save new wallet data
       const walletSaved = await this.walletsRepository.save(updatedWallet);
 
       if(!walletSaved) {
+        // log that
         await this.debugLog(
           'Hit API place bet [Failed Save Wallet Data]',
           {
@@ -130,6 +131,15 @@ export class TransactionService {
           message: "550",
         }
       }
+
+      // // add to queue in order to record balance history
+      await this.queue.add('balance-history-job',{
+        walletId: updatedWallet.id,
+        balance: checkBalance.afterBalance,
+        transaction: transactionSaved,
+      },{
+        removeOnComplete: true,
+      });
 
       this.logger.debug({
         message: 'Hit API place bet [Success Place Bet]',
@@ -185,14 +195,7 @@ export class TransactionService {
     try {
       for (const e of dto) {
         // find transaction with ticket bet Id
-        const transaction = await this.transactionsRepository.findOne({
-          where: {
-            ticketBetId: e.id
-          },
-          relations: {
-            user: true,
-          }
-        })
+        const transaction = await this.getOneTrxByTicketBetId(e.id);
         // if trx id isn't exist throw error
         if(!transaction) {
           await this.debugLog(
@@ -207,14 +210,7 @@ export class TransactionService {
           }
         } else {
           // find user with userId
-          const user = await this.usersRepository.findOne({
-            where: {
-              userAgentId: e.userId,
-            },
-            relations: {
-              wallet: true,
-            }
-          });
+          const user = await this.userService.getOneUserByAgentUserId(e.userId);
           // if user doesn't exists return status 0
           if (!user) {
             await this.debugLog(
@@ -307,6 +303,15 @@ export class TransactionService {
                   message: "550"
                 }
               }
+
+              // add to queue in order to record balance history
+              await this.queue.add('balance-history-job',{
+                walletId: updatedWallet.id,
+                balance: checkBalance.afterBalance,
+                transaction: transactionSaved,
+              },{
+                removeOnComplete: true,
+              });
             }
           }
         }
@@ -352,14 +357,7 @@ export class TransactionService {
     try {
       for (const e of dto) {
         // find transaction with ticket bet Id
-        const transaction = await this.transactionsRepository.findOne({
-          where: {
-            ticketBetId: e.id
-          },
-          relations: {
-            user: true,
-          }
-        })
+        const transaction = await this.getOneTrxByTicketBetId(e.id);
         // if trx id isn't exist throw error
         if(!transaction) {
           await this.debugLog(
@@ -374,14 +372,7 @@ export class TransactionService {
           }
         } else {
           // find user with userId
-          const user = await this.usersRepository.findOne({
-            where: {
-              userAgentId: e.userId,
-            },
-            relations: {
-              wallet: true,
-            }
-          });
+          const user = await this.userService.getOneUserByAgentUserId(e.userId);
           // if user doesn't exists return status 0
           if (!user) {
             await this.debugLog(
@@ -474,6 +465,15 @@ export class TransactionService {
                   message: "550"
                 }
               }
+
+              // add to queue in order to record balance history
+              await this.queue.add('balance-history-job',{
+                walletId: updatedWallet.id,
+                balance: checkBalance.afterBalance,
+                transaction: transactionSaved,
+              },{
+                removeOnComplete: true,
+              });
             }
           }
         }
@@ -519,14 +519,7 @@ export class TransactionService {
     try {
       for (const e of dto) {
         // find transaction with ticket bet Id
-        const transaction = await this.transactionsRepository.findOne({
-          where: {
-            ticketBetId: e.id
-          },
-          relations: {
-            user: true,
-          }
-        });
+        const transaction = await this.getOneTrxByTicketBetId(e.id);
         // if trx id isn't exist throw error
         if(!transaction) {
           await this.debugLog(
@@ -541,14 +534,7 @@ export class TransactionService {
           }
         } else {
           // find user with userId
-          const user = await this.usersRepository.findOne({
-            where: {
-              userAgentId: e.userId,
-            },
-            relations: {
-              wallet: true,
-            }
-          });
+          const user = await this.userService.getOneUserByAgentUserId(e.userId);
           // if user doesn't exists return status 0
           if (!user) {
             await this.debugLog(
@@ -640,6 +626,15 @@ export class TransactionService {
                   message: "550"
                 }
               }
+
+              // add to queue in order to record balance history
+              await this.queue.add('balance-history-job',{
+                walletId: updatedWallet.id,
+                balance: checkBalance.afterBalance,
+                transaction: transactionSaved,
+              },{
+                removeOnComplete: true,
+              });
             }
           }
         }
@@ -670,6 +665,25 @@ export class TransactionService {
         data: {},
         message: "550"
       }
+    }
+  }
+
+  // ==== function return promise
+
+  // get transaction by ticket bet Id
+  async getOneTrxByTicketBetId(ticketBetId: string) : Promise<Transaction> {
+    try {
+      const transaction = await this.transactionsRepository.findOne({
+        where: {
+          ticketBetId
+        },
+        relations: {
+          user: true,
+        }
+      });
+      return transaction;
+    } catch (err) {
+      throw err;
     }
   }
 

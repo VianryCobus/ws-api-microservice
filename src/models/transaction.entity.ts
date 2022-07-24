@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Balance } from "./historyBalance.entity";
 import { User } from "./user.entity";
 
 // export enum WinLoss {
@@ -157,6 +158,9 @@ export class Transaction {
   @ManyToOne(() => User, (user) => user.transactions)
   @JoinColumn()
   user: User
+
+  @OneToOne(() => Balance, (balance) => balance.transaction)
+  balance: Balance
 
   @CreateDateColumn()
   createdAt: Date;
