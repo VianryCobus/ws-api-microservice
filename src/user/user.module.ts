@@ -1,12 +1,8 @@
 import { BullModule } from '@nestjs/bull';
 import { Global, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Agent } from 'src/models/agent.entity';
-import { Currency } from 'src/models/currency.entity';
-import { Balance } from 'src/models/historyBalance.entity';
-import { User } from 'src/models/user.entity';
-import { Wallet } from 'src/models/wallet.entity';
-import { HistoryBalanceConsumer } from 'src/queue/historyBalance.consumer';
+import { Agent, Balance, Currency, User, Wallet } from 'src/models';
+import { HistoryBalanceConsumer } from 'src/queue';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 require("dotenv").config();

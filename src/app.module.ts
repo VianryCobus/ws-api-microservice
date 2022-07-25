@@ -5,18 +5,10 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 // import { PrismaModule } from './prisma/prisma.module';
-import { GenerateUserIdModule } from './helper/genUserId/genUserIdHelper.module';
-import { HitProviderModule } from './helper/hitProvider/hitProviderHelper.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import ormConfig from 'ormconfig';
-import { User } from './models/user.entity';
-import { Transaction } from './models/transaction.entity';
-import { Wallet } from './models/wallet.entity';
-import { Currency } from './models/currency.entity';
-import { Agent } from './models/agent.entity';
-import { TransactionController } from './transaction/transaction.controller';
-import { TransactionService } from './transaction/transaction.service';
 import { TransactionModule } from './transaction/transaction.module';
+import { GenerateUserIdModule, HitProviderModule, LoggerHelperModule } from './helper';
 
 @Module({
   imports: [
@@ -48,7 +40,8 @@ import { TransactionModule } from './transaction/transaction.module';
     // PrismaModule,
     GenerateUserIdModule,
     HitProviderModule,
-    TransactionModule, 
+    TransactionModule,
+    LoggerHelperModule,
   ],
   controllers: [AppController],
   providers: [AppService],

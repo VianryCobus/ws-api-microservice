@@ -2,21 +2,15 @@ import { InjectQueue } from '@nestjs/bull';
 import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
-import { check } from 'prettier';
-import { Agent } from 'src/models/agent.entity';
-import { Currency } from 'src/models/currency.entity';
-import { Transaction } from 'src/models/transaction.entity';
-import { User } from 'src/models/user.entity';
-import { Wallet } from 'src/models/wallet.entity';
+import { LoggerHelperService } from 'src/helper';
+import { Agent, Currency, Transaction, User, Wallet } from 'src/models';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
-import { BetResultDto, CancelBetDto, PlaceBetDto } from './dto';
-import { RollbackBetResultDto } from './dto/rollbackBetResult.dto';
+import { BetResultDto, CancelBetDto, PlaceBetDto, RollbackBetResultDto } from './dto';
 
 @Injectable()
 export class TransactionService {
-  private logFromProvider = require('../utils/log/logFromProvider');
-  logger: Logger;
+  private logger: Logger;
   constructor(
     @InjectRepository(Currency) private currenciesRepository: Repository<Currency>,
     @InjectRepository(User) private usersRepository: Repository<User>,
@@ -24,7 +18,8 @@ export class TransactionService {
     @InjectRepository(Agent) private agentsRepository: Repository<Agent>,
     @InjectRepository(Transaction) private transactionsRepository: Repository<Transaction>,
     @InjectQueue('ws-queue') private queue:Queue,
-    private userService: UserService
+    private userService: UserService,
+    private loggerHelperService: LoggerHelperService,
   ) {
     this.logger = new Logger();
   }
@@ -33,7 +28,7 @@ export class TransactionService {
       message: 'Hit API place bet',
       params: dto,
     });
-    await this.debugLog(
+    await this.loggerHelperService.debugLog(
       'Hit Api place bet',
       dto
     );
@@ -42,7 +37,7 @@ export class TransactionService {
       const user = await this.userService.getOneUserByAgentUserId(dto.userId);
       // if user doesn't exists return status 0
       if (!user) {
-        await this.debugLog(
+        await this.loggerHelperService.debugLog(
           'Hit API place bet [user does not exist]',
           dto
         );
@@ -58,7 +53,7 @@ export class TransactionService {
       // check balance on wallet, if insufficient, return status 0 and log that
       const checkBalance = await this.checkBalance(beforeBalance,payout);
       if (!checkBalance.status) {
-        await this.debugLog(
+        await this.loggerHelperService.debugLog(
           'Hit API place bet [Insufficient Balance]',
           {
             dto,
@@ -100,7 +95,7 @@ export class TransactionService {
       const transactionSaved = await this.transactionsRepository.save(newTransaction);
 
       if(!transactionSaved) {
-        await this.debugLog(
+        await this.loggerHelperService.debugLog(
           'Hit API place bet [Failed Save Transaction]',
           newTransaction
         );
@@ -116,7 +111,7 @@ export class TransactionService {
 
       if(!walletSaved) {
         // log that
-        await this.debugLog(
+        await this.loggerHelperService.debugLog(
           'Hit API place bet [Failed Save Wallet Data]',
           {
             beforeBalance,
@@ -145,7 +140,7 @@ export class TransactionService {
         message: 'Hit API place bet [Success Place Bet]',
         params: dto,
       });
-      await this.debugLog(
+      await this.loggerHelperService.debugLog(
         'Hit API place bet [Success Place Bet]',
         {
           data: {
@@ -170,7 +165,7 @@ export class TransactionService {
       };
     } catch(error) {
       if (error.code === '23505') {
-        await this.debugLog(
+        await this.loggerHelperService.debugLog(
           'Hit API place bet [Duplicate Trans Id]',
           {
             transId: dto.transId,
@@ -188,7 +183,7 @@ export class TransactionService {
       message: 'Hit API bet result',
       params: dto,
     });
-    await this.debugLog(
+    await this.loggerHelperService.debugLog(
       'Hit API bet result',
       dto,
     );
@@ -198,7 +193,7 @@ export class TransactionService {
         const transaction = await this.getOneTrxByTicketBetId(e.id);
         // if trx id isn't exist throw error
         if(!transaction) {
-          await this.debugLog(
+          await this.loggerHelperService.debugLog(
             `Hit API bet result [ticket (BET id) : ${e.id} isn't exist]`,
             e,
           );
@@ -213,7 +208,7 @@ export class TransactionService {
           const user = await this.userService.getOneUserByAgentUserId(e.userId);
           // if user doesn't exists return status 0
           if (!user) {
-            await this.debugLog(
+            await this.loggerHelperService.debugLog(
               `Hit API bet result [userId : ${e.userId} isn't exist]`,
               e,
             );
@@ -230,7 +225,7 @@ export class TransactionService {
             // check balance on wallet, if insufficient, return status 0 and log that
             const checkBalance = await this.checkBalance(beforeBalance,payout);
             if (!checkBalance.status) {
-              await this.debugLog(
+              await this.loggerHelperService.debugLog(
                 `Hit API bet result [Insufficient Balance when process transId : ${e.transId}]`,
                 {
                   beforeBalance,
@@ -264,7 +259,7 @@ export class TransactionService {
               const transactionSaved = await this.transactionsRepository.save(newTransaction);
 
               if(!transactionSaved) {
-                await this.debugLog(
+                await this.loggerHelperService.debugLog(
                   `Hit API bet result [Failed Save transaction Data, transId : ${e.transId}]`,
                   transaction,
                 );
@@ -287,7 +282,7 @@ export class TransactionService {
               const walletSaved = await this.walletsRepository.save(updatedWallet);
 
               if(!walletSaved) {
-                await this.debugLog(
+                await this.loggerHelperService.debugLog(
                   `Hit API bet result [Failed Save wallet Balance], transId : ${e.transId}`,
                   {
                     beforeBalance,
@@ -316,7 +311,7 @@ export class TransactionService {
           }
         }
       };
-      await this.debugLog(
+      await this.loggerHelperService.debugLog(
         `Hit API bet result [Success Bet Result]`,
         dto,
       );
@@ -326,13 +321,13 @@ export class TransactionService {
       }
     } catch(error) {
       if (error.code === '23505') {
-        await this.debugLog(
+        await this.loggerHelperService.debugLog(
           `Hit API bet result [Duplicate Trans Id]`,
           ''
         );
         throw new ForbiddenException('Duplicate Trans Id');
       }
-      await this.debugLog(
+      await this.loggerHelperService.debugLog(
         `Hit API bet result [Error from catch]`,
         error
       );
@@ -350,7 +345,7 @@ export class TransactionService {
       message: 'Hit API rollback bet result',
       params: dto,
     });
-    await this.debugLog(
+    await this.loggerHelperService.debugLog(
       'Hit API rollback bet result',
       dto,
     );
@@ -360,7 +355,7 @@ export class TransactionService {
         const transaction = await this.getOneTrxByTicketBetId(e.id);
         // if trx id isn't exist throw error
         if(!transaction) {
-          await this.debugLog(
+          await this.loggerHelperService.debugLog(
             `Hit API rollback bet result [ticket (BET id) : ${e.id} isn't exist ]`,
             e
           );
@@ -375,7 +370,7 @@ export class TransactionService {
           const user = await this.userService.getOneUserByAgentUserId(e.userId);
           // if user doesn't exists return status 0
           if (!user) {
-            await this.debugLog(
+            await this.loggerHelperService.debugLog(
               `Hit API rollback bet result [userId : ${e.userId} isn't exist]`,
               e
             );
@@ -392,7 +387,7 @@ export class TransactionService {
             // check balance on wallet, if insufficient, return status 0 and log that
             const checkBalance = await this.checkBalance(beforeBalance, payout);
             if (!checkBalance.status) {
-              await this.debugLog(
+              await this.loggerHelperService.debugLog(
                 `Hit API rollback bet result [Insufficient Balance when process transId: ${e.transId}]`,
                 {
                   beforeBalance,
@@ -426,7 +421,7 @@ export class TransactionService {
               const transactionSaved = await this.transactionsRepository.save(newTransaction);
 
               if(!transactionSaved) {
-                await this.debugLog(
+                await this.loggerHelperService.debugLog(
                   `Hit API bet result [Failed Save transaction Data, transId : ${e.transId}]`,
                   transaction,
                 );
@@ -449,7 +444,7 @@ export class TransactionService {
               const walletSaved = await this.walletsRepository.save(updatedWallet);
 
               if(!walletSaved) {
-                await this.debugLog(
+                await this.loggerHelperService.debugLog(
                   `Hit API bet result [Failed Save wallet Balance], transId : ${e.transId}`,
                   {
                     beforeBalance,
@@ -478,7 +473,7 @@ export class TransactionService {
           }
         }
       };
-      await this.debugLog(
+      await this.loggerHelperService.debugLog(
         `Hit API rollback bet result [Success Rollback Bet Result]`,
         dto,
       );
@@ -488,13 +483,13 @@ export class TransactionService {
       }
     } catch (error) {
       if (error.code === '23505') {
-        await this.debugLog(
+        await this.loggerHelperService.debugLog(
           `Hit API rollback bet result [Duplicate Trans Id]`,
           ''
         );
         throw new ForbiddenException('Duplicate Trans Id');
       }
-      await this.debugLog(
+      await this.loggerHelperService.debugLog(
         'Hit API rollback bet result [Error from catch]',
         error,
       );
@@ -512,7 +507,7 @@ export class TransactionService {
       message: 'Hit API cancel bet',
       params: dto,
     });
-    await this.debugLog(
+    await this.loggerHelperService.debugLog(
       'Hit API cancel bet',
       dto,
     );
@@ -522,7 +517,7 @@ export class TransactionService {
         const transaction = await this.getOneTrxByTicketBetId(e.id);
         // if trx id isn't exist throw error
         if(!transaction) {
-          await this.debugLog(
+          await this.loggerHelperService.debugLog(
             `Hit API cancel bet [ticket (BET id) : ${e.id} isn't exit]`,
             e
           );
@@ -537,7 +532,7 @@ export class TransactionService {
           const user = await this.userService.getOneUserByAgentUserId(e.userId);
           // if user doesn't exists return status 0
           if (!user) {
-            await this.debugLog(
+            await this.loggerHelperService.debugLog(
               `Hit API cancel bet [userId : ${e.userId} isn't exist]`,
               e
             );
@@ -554,7 +549,7 @@ export class TransactionService {
             // check balance on wallet, if insufficient, return status 0 and log that
             const checkBalance = await this.checkBalance(beforeBalance, payout);
             if(!checkBalance.status) {
-              await this.debugLog(
+              await this.loggerHelperService.debugLog(
                 `Hit API cancel bet [Insufficient Balance when process transId: ${e.transId}]`,
                 {
                   beforeBalance,
@@ -587,7 +582,7 @@ export class TransactionService {
               const transactionSaved = await this.transactionsRepository.save(newTransaction);
 
               if(!transactionSaved) {
-                await this.debugLog(
+                await this.loggerHelperService.debugLog(
                   `Hit API cancel bet [Failed Save transaction Data, transId : ${e.transId}]`,
                   transaction,
                 );
@@ -610,7 +605,7 @@ export class TransactionService {
               const walletSaved = await this.walletsRepository.save(updatedWallet);
 
               if(!walletSaved) {
-                await this.debugLog(
+                await this.loggerHelperService.debugLog(
                   `Hit API cancel bet [Failed Save wallet Balance], transId : ${e.transId}`,
                   {
                     beforeBalance,
@@ -639,7 +634,7 @@ export class TransactionService {
           }
         }
       }
-      await this.debugLog(
+      await this.loggerHelperService.debugLog(
         `Hit API cancel bet [Success Cancel Bet]`,
         dto,
       );
@@ -649,13 +644,13 @@ export class TransactionService {
       }
     } catch (error) {
       if (error.code === '23505') {
-        await this.debugLog(
+        await this.loggerHelperService.debugLog(
           `Hit API cancel bet [Duplicate Trans Id]`,
           ''
         );
         throw new ForbiddenException('Duplicate Trans Id');
       }
-      await this.debugLog(
+      await this.loggerHelperService.debugLog(
         'Hit API cancel bet [Error from catch]',
         error,
       );
@@ -699,12 +694,4 @@ export class TransactionService {
     }
   }
 
-  debugLog(type: string,params: any){
-    return this.logFromProvider.debug({
-      message: {
-        type,
-        params,
-      }
-    });
-  }
 }

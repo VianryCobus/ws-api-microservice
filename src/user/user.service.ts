@@ -2,23 +2,21 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
-import { Agent } from 'http';
-import { Currency } from 'src/models/currency.entity';
-import { User } from 'src/models/user.entity';
-import { Wallet } from 'src/models/wallet.entity';
+import { LoggerHelperService } from 'src/helper';
+import { Agent, Currency, User, Wallet } from 'src/models';
 import { Repository } from 'typeorm';
-import { BalanceDto } from './dto/balance.dto';
+import { BalanceDto } from './dto';
 
 @Injectable()
 export class UserService {
-  private logFromProvider = require('../utils/log/logFromProvider');
-  logger: Logger;
+  private logger: Logger;
   constructor(
     @InjectRepository(Currency) private currenciesRepository: Repository<Currency>,
     @InjectRepository(User) private usersRepository: Repository<User>,
     @InjectRepository(Wallet) private walletsRepository: Repository<Wallet>,
     @InjectRepository(Agent) private agentsRepository: Repository<Agent>,
     // @InjectQueue('ws-queue') private queue:Queue,
+    private loggerHelperService: LoggerHelperService,
   ){
     this.logger = new Logger();
   }
@@ -32,12 +30,10 @@ export class UserService {
     // });
 
     // this.logger.debug({message: 'Hit API get balance',params: dto,});
-    // this.logFromProvider.debug({
-    //   message: {
-    //     type: 'Hit API get balance',
-    //     params: dto,
-    //   }
-    // });
+    // this.loggerHelperService.debugLog(
+    //   'Hit API get balance',
+    //   dto,
+    // );
 
     // find user balance with userId
     const balance = await this.usersRepository.findOne({
@@ -56,12 +52,10 @@ export class UserService {
         data: {},
         message: "882",
       }
-      // this.logFromProvider.debug({
-      //   message: {
-      //     type: 'Hit API get balance [balance does not exist]',
-      //     params: dto,
-      //   }
-      // });
+      this.loggerHelperService.debugLog(
+        'Hit API get balance [balance does not exist]',
+        dto,
+      );
     } else {
       returnData = {
         status: "1",
@@ -71,12 +65,10 @@ export class UserService {
         message: null,
       }
       // this.logger.debug({message: 'Return API get balance',params: returnData,});
-      // this.logFromProvider.debug({
-      //   message: {
-      //     type: 'Return API get balance',
-      //     params: returnData,
-      //   }
-      // });
+      // this.loggerHelperService.debugLog(
+      //   'Return API get balance',
+      //   returnData,
+      // );
     }
     return returnData;
   }

@@ -4,11 +4,8 @@ import * as bcrypt from 'bcrypt';
 import { GenerateUserIdService } from "src/helper/genUserId/genUserIdHelper.service";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Currency } from "src/models/currency.entity";
-import { User } from "src/models/user.entity";
-import { Wallet } from "src/models/wallet.entity";
-import { Agent } from "src/models/agent.entity";
-import { HitProviderService } from "src/helper/hitProvider/hitProviderHelper.service";
+import { Agent, Currency, User, Wallet } from "src/models";
+import { HitProviderService } from "src/helper";
 
 @Injectable()
 export class AuthService {
