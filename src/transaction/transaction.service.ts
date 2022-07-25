@@ -513,21 +513,21 @@ export class TransactionService {
     );
     try {
       for (const e of dto) {
-        // find transaction with ticket bet Id
+        // ==== find transaction with ticket bet Id
         const transaction = await this.getOneTrxByTicketBetId(e.id);
-        // if trx id isn't exist throw error
-        if(!transaction) {
-          await this.loggerHelperService.debugLog(
-            `Hit API cancel bet [ticket (BET id) : ${e.id} isn't exit]`,
-            e
-          );
-          // handle error
-          return {
-            status: "0",
-            data: {},
-            message: "550"
-          }
-        } else {
+        // ==== if trx id isn't exist throw error
+        // if(!transaction) {
+        //   await this.loggerHelperService.debugLog(
+        //     `Hit API cancel bet [ticket (BET id) : ${e.id} isn't exit]`,
+        //     e
+        //   );
+        //   // handle error
+        //   return {
+        //     status: "0",
+        //     data: {},
+        //     message: "550"
+        //   }
+        // } else {
           // find user with userId
           const user = await this.userService.getOneUserByAgentUserId(e.userId);
           // if user doesn't exists return status 0
@@ -632,7 +632,7 @@ export class TransactionService {
               });
             }
           }
-        }
+        // }
       }
       await this.loggerHelperService.debugLog(
         `Hit API cancel bet [Success Cancel Bet]`,
