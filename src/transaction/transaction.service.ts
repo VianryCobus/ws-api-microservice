@@ -639,6 +639,7 @@ export class TransactionService {
         dto,
       );
       return {
+        data: {},
         status: "1",
         message: "",
       }
