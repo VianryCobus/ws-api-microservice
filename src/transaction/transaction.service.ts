@@ -316,7 +316,7 @@ export class TransactionService {
         dto,
       );
       return {
-        status: "1",
+        status: 1,
         message: "",
       }
     } catch(error) {
@@ -478,7 +478,7 @@ export class TransactionService {
         dto,
       );
       return {
-        status: "1",
+        status: 1,
         message: "",
       }
     } catch (error) {
@@ -640,7 +640,7 @@ export class TransactionService {
       );
       return {
         data: {},
-        status: "1",
+        status: 1,
         message: "",
       }
     } catch (error) {
