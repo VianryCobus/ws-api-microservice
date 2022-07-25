@@ -164,17 +164,27 @@ export class TransactionService {
         message: "",
       };
     } catch(error) {
-      if (error.code === '23505') {
-        await this.loggerHelperService.debugLog(
-          'Hit API place bet [Duplicate Trans Id]',
-          {
-            transId: dto.transId,
-          },
-        );
-        throw new ForbiddenException(`Duplicate Trans Id, transId : ${dto.transId}`)
+      // if (error.code === '23505') {
+      //   await this.loggerHelperService.debugLog(
+      //     'Hit API place bet [Duplicate Trans Id]',
+      //     {
+      //       transId: dto.transId,
+      //     },
+      //   );
+      //   throw new ForbiddenException(`Duplicate Trans Id, transId : ${dto.transId}`)
+      // }
+      // // handle error
+      // throw error;
+
+      await this.loggerHelperService.debugLog(
+        'Hit API place bet [Failed Place Bet, Error from catch]',
+        error,
+      );
+      return {
+        status: "0",
+        data: {},
+        message: "550",
       }
-      // handle error
-      throw error;
     }
   }
 
@@ -320,15 +330,15 @@ export class TransactionService {
         message: "",
       }
     } catch(error) {
-      if (error.code === '23505') {
-        await this.loggerHelperService.debugLog(
-          `Hit API bet result [Duplicate Trans Id]`,
-          ''
-        );
-        throw new ForbiddenException('Duplicate Trans Id');
-      }
+      // if (error.code === '23505') {
+      //   await this.loggerHelperService.debugLog(
+      //     `Hit API bet result [Duplicate Trans Id]`,
+      //     ''
+      //   );
+      //   throw new ForbiddenException('Duplicate Trans Id');
+      // }
       await this.loggerHelperService.debugLog(
-        `Hit API bet result [Error from catch]`,
+        `Hit API bet result [Failed Bet Result, Error from catch]`,
         error
       );
       // handle error
@@ -482,15 +492,15 @@ export class TransactionService {
         message: "",
       }
     } catch (error) {
-      if (error.code === '23505') {
-        await this.loggerHelperService.debugLog(
-          `Hit API rollback bet result [Duplicate Trans Id]`,
-          ''
-        );
-        throw new ForbiddenException('Duplicate Trans Id');
-      }
+      // if (error.code === '23505') {
+      //   await this.loggerHelperService.debugLog(
+      //     `Hit API rollback bet result [Duplicate Trans Id]`,
+      //     ''
+      //   );
+      //   throw new ForbiddenException('Duplicate Trans Id');
+      // }
       await this.loggerHelperService.debugLog(
-        'Hit API rollback bet result [Error from catch]',
+        'Hit API rollback bet result [Failed Rollback bet result, Error from catch]',
         error,
       );
       // handle error
@@ -644,15 +654,15 @@ export class TransactionService {
         message: "",
       }
     } catch (error) {
-      if (error.code === '23505') {
-        await this.loggerHelperService.debugLog(
-          `Hit API cancel bet [Duplicate Trans Id]`,
-          ''
-        );
-        throw new ForbiddenException('Duplicate Trans Id');
-      }
+      // if (error.code === '23505') {
+      //   await this.loggerHelperService.debugLog(
+      //     `Hit API cancel bet [Duplicate Trans Id]`,
+      //     ''
+      //   );
+      //   throw new ForbiddenException('Duplicate Trans Id');
+      // }
       await this.loggerHelperService.debugLog(
-        'Hit API cancel bet [Error from catch]',
+        'Hit API cancel bet [Failed Cancel Bet, Error from catch]',
         error,
       );
       // handle error
