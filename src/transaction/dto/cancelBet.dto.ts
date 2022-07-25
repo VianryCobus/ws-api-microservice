@@ -35,7 +35,7 @@ export class CancelBetDto {
   payout: number;
 
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   ip: string;
 
   @IsString()
@@ -44,10 +44,10 @@ export class CancelBetDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsIn([
-    'HDP',
-    'OU'
-  ])
+  // @IsIn([
+  //   'HDP',
+  //   'OU'
+  // ])
   game: string;
 
   @IsIn([

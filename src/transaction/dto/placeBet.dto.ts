@@ -34,7 +34,7 @@ export class PlaceBetDto {
   payout: number;
 
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   ip: string;
 
   @IsString()
@@ -43,10 +43,10 @@ export class PlaceBetDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsIn([
-    'HDP',
-    'OU'
-  ])
+  // @IsIn([
+  //   'HDP',
+  //   'OU'
+  // ])
   game: string;
 
   @IsIn([

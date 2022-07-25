@@ -671,7 +671,8 @@ export class TransactionService {
     try {
       const transaction = await this.transactionsRepository.findOne({
         where: {
-          ticketBetId
+          ticketBetId,
+          ep: 'bet',
         },
         relations: {
           user: true,
