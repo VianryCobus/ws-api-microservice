@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Query, ValidationPipe } from '@nestjs/common';
+import { validationSeamless } from 'src/utils/pipe';
 import { BalanceDto } from './dto';
 import { UserService } from './user.service';
 
@@ -7,7 +8,7 @@ export class UserController {
   constructor(private userService: UserService){}
 
   @Get('bal')
-  getbalance(@Query() dto: BalanceDto){
+  getbalance(@Query(new validationSeamless('getBalance')) dto: BalanceDto){
     return this.userService.getbalance(dto)
   }
 

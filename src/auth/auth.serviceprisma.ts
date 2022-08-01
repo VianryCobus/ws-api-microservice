@@ -4,7 +4,7 @@ import { User, Transaction, Wallet} from '@prisma/client';
 import { AuthDto, SignUpDto } from "./dto";
 import * as argon from 'argon2';
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
-import { GenerateUserIdService } from "src/helper/genUserId/genUserIdHelper.service";
+import { GenerateUserIdService } from "src/utils/helper/genUserId/genUserIdHelper.service";
 import { HttpService } from "@nestjs/axios";
 // import { HitProviderService } from "src/helper/hitProvider/hitProviderHelper.service";
 

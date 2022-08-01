@@ -33,4 +33,5 @@ const logFromProvider = createLogger({
   ],
 });
 
-module.exports = logFromProvider;
+// module.exports = logFromProvider;
+export default logFromProvider;

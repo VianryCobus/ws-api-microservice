@@ -1,4 +1,6 @@
-import { Body, Controller, Get, ParseArrayPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, ParseArrayPipe, Post } from '@nestjs/common';
+import { validationSeamless, validationSeamlessArray } from 'src/utils/pipe';
+import { Http } from 'winston/lib/winston/transports';
 import { BetResultDto, CancelBetDto, PlaceBetDto, RollbackBetResultDto } from './dto';
 import { TransactionService } from './transaction.service';
 
@@ -7,22 +9,41 @@ export class TransactionController {
   constructor(private transactionService: TransactionService){}
 
   @Post('bet')
-  placeBet(@Body() dto: PlaceBetDto) {
+  @HttpCode(200)
+  placeBet(@Body(new validationSeamless('placeBet')) dto: PlaceBetDto) {
     return this.transactionService.placeBet(dto);
   }
 
   @Post('betresult')
-  betResult(@Body(new ParseArrayPipe({ items: BetResultDto})) dto: BetResultDto[]) {
+  @HttpCode(200)
+  betResult(@Body(new ParseArrayPipe(
+    { 
+      items: BetResultDto,
+      whitelist: true,
+    }
+  )) dto: BetResultDto[]) {
     return this.transactionService.betResult(dto);
   }
 
   @Post('rollback')
-  rollbackBetResult(@Body(new ParseArrayPipe({ items:RollbackBetResultDto })) dto: RollbackBetResultDto[]) {
+  @HttpCode(200)
+  rollbackBetResult(@Body(new ParseArrayPipe(
+    { 
+      items:RollbackBetResultDto,
+      whitelist: true,
+    }
+  )) dto: RollbackBetResultDto[]) {
     return this.transactionService.rollbackBetResult(dto);
   }
 
   @Post('betcancel')
-  cancelBet(@Body(new ParseArrayPipe({items:CancelBetDto })) dto: CancelBetDto[]) {
+  @HttpCode(200)
+  cancelBet(@Body(new ParseArrayPipe(
+    {
+      items:CancelBetDto ,
+      whitelist: true,
+    }
+  )) dto: CancelBetDto[]) {
     return this.transactionService.cancelBet(dto);
   }
 

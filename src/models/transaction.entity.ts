@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { DetailTransaction } from "./detailTransaction.entity";
 import { Balance } from "./historyBalance.entity";
 import { User } from "./user.entity";
 
@@ -36,7 +37,7 @@ export class Transaction {
 
   @Column({
     type: 'varchar',
-    length: 255,
+    // length: 255,
   })
   ticketBetId: string;
 
@@ -158,6 +159,10 @@ export class Transaction {
   @ManyToOne(() => User, (user) => user.transactions)
   @JoinColumn()
   user: User
+
+  @ManyToOne(() => DetailTransaction, (detailtrx) => detailtrx.transactions)
+  @JoinColumn({ name:"ticketBetId", referencedColumnName: "ticketBetId"  })
+  detailtrx: DetailTransaction
 
   @OneToOne(() => Balance, (balance) => balance.transaction)
   balance: Balance

@@ -2,7 +2,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
-import { LoggerHelperService } from 'src/helper';
+import { LoggerHelperService } from 'src/utils/helper';
 import { Agent, Currency, User, Wallet } from 'src/models';
 import { Repository } from 'typeorm';
 import { BalanceDto } from './dto';
@@ -36,14 +36,7 @@ export class UserService {
     // );
 
     // find user balance with userId
-    const balance = await this.usersRepository.findOne({
-      relations: {
-        wallet: true,
-      },
-      where: {
-        userAgentId: dto.userId,
-      }
-    });
+    const balance = await this.getOneUserByAgentUserId(dto.userId);
     // if user and balance does not exist throw exception
     let returnData;
     if (!balance) {
@@ -84,6 +77,7 @@ export class UserService {
         },
         relations: {
           wallet: true,
+          agent: true,
         }
       });
       return user;

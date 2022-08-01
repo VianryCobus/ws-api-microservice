@@ -1,11 +1,11 @@
 import { ForbiddenException, HttpCode, HttpStatus, Injectable, Res } from "@nestjs/common";
 import { AuthDto, LogoutDto, SignUpDto } from "./dto";
 import * as bcrypt from 'bcrypt';
-import { GenerateUserIdService } from "src/helper/genUserId/genUserIdHelper.service";
+import { GenerateUserIdService } from "src/utils/helper/genUserId/genUserIdHelper.service";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Agent, Currency, User, Wallet } from "src/models";
-import { HitProviderService } from "src/helper";
+import { HitProviderService } from "src/utils/helper";
 
 @Injectable()
 export class AuthService {

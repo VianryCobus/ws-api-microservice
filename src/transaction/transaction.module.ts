@@ -1,8 +1,8 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Agent, Balance, Currency, Transaction, User, Wallet } from 'src/models';
-import { HistoryBalanceConsumer } from 'src/queue';
+import { Agent, Balance, Currency, DetailTransaction, Transaction, User, Wallet } from 'src/models';
+import { DetailTransactionConsumer, HistoryBalanceConsumer } from 'src/utils/queue';
 import { TransactionController } from './transaction.controller';
 import { TransactionService } from './transaction.service';
 require ("dotenv").config();
@@ -15,12 +15,14 @@ require ("dotenv").config();
       Currency,
       Agent,
       Transaction,
-      Balance
+      Balance,
+      DetailTransaction,
     ]),
     BullModule.forRoot({
       redis: {
         host: process.env.REDIS_HOST,
         port: Number(process.env.REDIS_PORT),
+        password: process.env.REDIS_PASSWORD
       }
     }),
     BullModule.registerQueue({
@@ -30,7 +32,8 @@ require ("dotenv").config();
   controllers: [TransactionController],
   providers: [
     TransactionService,
-    HistoryBalanceConsumer
+    HistoryBalanceConsumer,
+    DetailTransactionConsumer,
   ],
 })
 export class TransactionModule {}

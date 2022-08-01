@@ -2,19 +2,19 @@ import { IsNotEmpty, IsNumber, IsString, Max, Min} from "class-validator";
 
 export class BetResultDto {
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   userId: string;
 
   @IsNumber()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   transId: number;
 
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   id: string;
 
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   sDate: string;
 
   @IsNumber({
@@ -22,7 +22,7 @@ export class BetResultDto {
   })
   @Min(-9999999999999999.9999)
   @Max(9999999999999999.9999)
-  @IsNotEmpty()
+  // @IsNotEmpty()
   bAmt: number;
 
   @IsNumber({
@@ -33,7 +33,7 @@ export class BetResultDto {
   wAmt: number;
   
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   odds: string;
 
   @IsNumber({
@@ -65,10 +65,10 @@ export class BetResultDto {
   creditDeducted: number;
 
   @IsNumber()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   winloss: number;
 
   @IsNumber()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   status: number;
 }

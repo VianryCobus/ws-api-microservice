@@ -2,7 +2,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
-import { LoggerHelperService } from 'src/helper';
+import { LoggerHelperService } from 'src/utils/helper';
 import { Agent, Currency, Transaction, User, Wallet } from 'src/models';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
@@ -140,29 +140,24 @@ export class TransactionService {
         message: 'Hit API place bet [Success Place Bet]',
         params: dto,
       });
-      await this.loggerHelperService.debugLog(
-        'Hit API place bet [Success Place Bet]',
-        {
-          data: {
-            userId: user.userId,
-            beforeBalance,
-            afterBalance: checkBalance.afterBalance,
-          },
-          status: 1,
-          message: "",
-        }
-      );
 
-      // return success params
-      return {
+      const objSuccess = {
         data: {
           userId: user.userId,
-          beforeBalance: beforeBalance,
+          beforeBalance,
           afterBalance: checkBalance.afterBalance,
         },
         status: 1,
         message: "",
       };
+
+      await this.loggerHelperService.debugLog(
+        'Hit API place bet [Success Place Bet]',
+        objSuccess,
+      );
+
+      // return success params
+      return objSuccess;
     } catch(error) {
       // if (error.code === '23505') {
       //   await this.loggerHelperService.debugLog(
@@ -317,6 +312,15 @@ export class TransactionService {
               },{
                 removeOnComplete: true,
               });
+
+              // add to queue in order to retreive detail transaction job
+              await this.queue.add('detail-trx-job', {
+                ticketBetId: transaction.ticketBetId,
+                agentId: user.agent.agentId,
+                apiKey: user.agent.apiKey,
+              },{
+                removeOnComplete: true,
+              });
             }
           }
         }
@@ -330,6 +334,7 @@ export class TransactionService {
         message: "",
       }
     } catch(error) {
+      console.log(error);
       // if (error.code === '23505') {
       //   await this.loggerHelperService.debugLog(
       //     `Hit API bet result [Duplicate Trans Id]`,
@@ -339,7 +344,9 @@ export class TransactionService {
       // }
       await this.loggerHelperService.debugLog(
         `Hit API bet result [Failed Bet Result, Error from catch]`,
-        error
+        {
+          error
+        }
       );
       // handle error
       return {
@@ -694,7 +701,7 @@ export class TransactionService {
     }
   }
 
-  checkBalance(before: number,payout: number){
+  private checkBalance(before: number,payout: number){
     if(before + payout < 0) {
       return {
         status: false,

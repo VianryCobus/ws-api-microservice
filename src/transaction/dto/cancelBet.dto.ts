@@ -2,19 +2,19 @@ import { IsIn, IsNegative, IsNotEmpty, IsNumber, IsString, Max, Min } from "clas
 
 export class CancelBetDto {
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   userId: string;
 
   @IsNumber()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   transId: number;
 
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   id: string;
 
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   sDate: string;
 
   @IsNumber({
@@ -22,7 +22,7 @@ export class CancelBetDto {
   })
   @Min(-9999999999999999.9999)
   @Max(9999999999999999.9999)
-  @IsNotEmpty()
+  // @IsNotEmpty()
   bAmt: number;
 
   @IsNumber({
@@ -30,7 +30,7 @@ export class CancelBetDto {
   })
   @Min(-9999999999999999.9999)
   @Max(-1)
-  @IsNotEmpty()
+  // @IsNotEmpty()
   @IsNegative()
   payout: number;
 
@@ -39,11 +39,11 @@ export class CancelBetDto {
   ip: string;
 
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   odds: string;
 
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   // @IsIn([
   //   'HDP',
   //   'OU'

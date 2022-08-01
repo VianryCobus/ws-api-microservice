@@ -30,7 +30,7 @@ export class PlaceBetDto {
   })
   @Min(-9999999999999999.9999)
   @Max(9999999999999999.9999)
-  @IsNotEmpty()
+  // @IsNotEmpty()
   payout: number;
 
   @IsString()
@@ -38,11 +38,11 @@ export class PlaceBetDto {
   ip: string;
 
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   odds: string;
 
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   // @IsIn([
   //   'HDP',
   //   'OU'

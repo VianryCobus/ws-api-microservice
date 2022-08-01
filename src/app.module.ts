@@ -8,7 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import ormConfig from 'ormconfig';
 import { TransactionModule } from './transaction/transaction.module';
-import { GenerateUserIdModule, HitProviderModule, LoggerHelperModule } from './helper';
+import { GenerateUserIdModule, HitProviderModule, LoggerHelperModule } from './utils/helper';
 
 @Module({
   imports: [
