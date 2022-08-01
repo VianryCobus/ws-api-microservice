@@ -136,6 +136,15 @@ export class TransactionService {
         removeOnComplete: true,
       });
 
+      // add to queue in order to retreive detail transaction job
+      await this.queue.add('detail-trx-job', {
+        ticketBetId: dto.id,
+        agentId: user.agent.agentId,
+        apiKey: user.agent.apiKey,
+      },{
+        removeOnComplete: true,
+      });
+
       this.logger.debug({
         message: 'Hit API place bet [Success Place Bet]',
         params: dto,
