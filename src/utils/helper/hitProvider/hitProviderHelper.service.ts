@@ -154,7 +154,7 @@ export class HitProviderService {
     const apiKey: String = params.apiKey;
     const hashOrigin: String = `${apiKey}agentid=${agentId}`;
     const Hash = this.md5(hashOrigin);
-    let Url: string = `${process.env.WS_URL}/SportAgent/${agentId}/Parlay?hash=${Hash}&ticketid=${ticketBetId}`;
+    let Url: string = `${process.env.WS_URL}/SportAgent/${agentId}/Parlay/${ticketBetId}?hash=${Hash}`;
     this.loggerHelperService.debugLog(
       'Hit Provider API fetch ticket details parlay',
       {

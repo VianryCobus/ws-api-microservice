@@ -134,6 +134,7 @@ export class TransactionService {
         transaction: transactionSaved,
       },{
         removeOnComplete: true,
+        delay: 3000,
       });
 
       // add to queue in order to retreive detail transaction job
@@ -143,6 +144,7 @@ export class TransactionService {
         apiKey: user.agent.apiKey,
       },{
         removeOnComplete: true,
+        delay: 5000,
       });
 
       this.logger.debug({
@@ -320,6 +322,7 @@ export class TransactionService {
                 transaction: transactionSaved,
               },{
                 removeOnComplete: true,
+                delay: 3000,
               });
 
               // add to queue in order to retreive detail transaction job
@@ -329,6 +332,7 @@ export class TransactionService {
                 apiKey: user.agent.apiKey,
               },{
                 removeOnComplete: true,
+                delay: 5000,
               });
             }
           }
