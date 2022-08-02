@@ -14,7 +14,7 @@ export class AuthService {
     @InjectRepository(User) private usersRepository: Repository<User>,
     @InjectRepository(Wallet) private walletsRepository: Repository<Wallet>,
     @InjectRepository(Agent) private agentsRepository: Repository<Agent>,
-    // private genUserIdService: GenerateUserIdService
+    private genUserIdService: GenerateUserIdService,
     // private readonly httpService: HttpService,
     private hitProviderService: HitProviderService
   ) {}
@@ -129,7 +129,7 @@ export class AuthService {
         userId: userIdUpper,
         userAgentId: `${agentId}${userIdUpper}`,
         hash,
-        agent, 
+        agent,
       });
       const newWallet = await this.walletsRepository.create({
         name: `${currency.name}-${agentId}`,
@@ -137,6 +137,7 @@ export class AuthService {
       })
       // this is make relation with cascade join
       newUser.wallet = newWallet;
+      // return await this.genUserIdService.index(dto.currency);
       // action save
       const userSaved = await this.usersRepository.save(newUser);
       let returnData;

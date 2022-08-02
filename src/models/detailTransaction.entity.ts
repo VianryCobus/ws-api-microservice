@@ -231,6 +231,12 @@ export class DetailTransaction {
   })
   commision: string;
 
+  @Column({
+    type: 'varchar',
+    length: 255,
+  })
+  sId: string;
+
   @OneToMany(() => Transaction, (transaction) => transaction.detailtrx)
   @JoinColumn({ name:"ticketBetId", referencedColumnName: "ticketBetId"  })
   transactions: Transaction[]

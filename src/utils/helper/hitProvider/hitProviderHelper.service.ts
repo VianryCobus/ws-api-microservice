@@ -146,4 +146,44 @@ export class HitProviderService {
     }
     return responseProvider;
   }
+
+  // fetch ticket parlay
+  async ticketParlay(params) {
+    const ticketBetId: String = params.ticketBetId;
+    const agentId: String = params.agentId;
+    const apiKey: String = params.apiKey;
+    const hashOrigin: String = `${apiKey}agentid=${agentId}`;
+    const Hash = this.md5(hashOrigin);
+    let Url: string = `${process.env.WS_URL}/SportAgent/${agentId}/Parlay?hash=${Hash}&ticketid=${ticketBetId}`;
+    this.loggerHelperService.debugLog(
+      'Hit Provider API fetch ticket details parlay',
+      {
+        hashOrigin,
+        Hash,
+        Url,
+      }
+    );
+    const getProvider = await axios.get(Url);
+    this.loggerHelperService.debugLog(
+      'Return Hit Provider API fetch ticket details parlay',
+      getProvider.data
+    );
+    let responseProvider: any;
+    switch(getProvider.data.status){
+      case 'success':
+        responseProvider = {
+          status: true,
+          data: getProvider.data.data,
+        };
+        break;
+      case 'fail':
+        responseProvider = {
+          status: false,
+          data: getProvider.data.data,
+        };
+        break;
+      default:
+    }
+    return responseProvider;
+  }
 }
