@@ -1,9 +1,9 @@
 import { Global, Module } from "@nestjs/common";
-import { EncryptHelperService } from "./encryptHelper.service";
+import { EncryptService } from "./encryptHelper.service";
 
 @Global()
 @Module({
-  providers: [EncryptHelperService],
-  exports: [EncryptHelperService]
+  providers: [EncryptService],
+  exports: [EncryptService]
 })
-export class EncryptHelperModule {}
+export class EncryptModule {}

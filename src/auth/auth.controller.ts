@@ -1,4 +1,5 @@
-import { Body, Controller, Get, HttpCode, ParseIntPipe, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, ParseIntPipe, Post, Req, UseGuards } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
 import { AuthService } from "./auth.service";
 import { AuthDto, LogoutDto, SignUpDto } from "./dto";
 
@@ -6,9 +7,11 @@ import { AuthDto, LogoutDto, SignUpDto } from "./dto";
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  // @UseGuards(AuthGuard('jwt'))
   @Post('signup')
-  signup(@Body() dto: SignUpDto) {
-    return this.authService.signup(dto);
+  @HttpCode(200)
+  signup(@Body() dto: SignUpDto, @Req() req: Request) {
+    return this.authService.signup(dto,req.headers);
   }
 
   @Post('signin')

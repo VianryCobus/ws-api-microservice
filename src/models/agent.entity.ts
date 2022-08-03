@@ -26,6 +26,12 @@ export class Agent {
   })
   apiKey: string;
 
+  @Column({
+    type: 'varchar',
+    length: 255,
+  })
+  agentKey: string;
+
   @OneToMany(() => User, (user) => user.agent)
   users: User[]
 

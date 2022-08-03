@@ -1,12 +1,13 @@
-import { ForbiddenException, HttpCode, HttpStatus, Injectable, Res } from "@nestjs/common";
+import { ForbiddenException, HttpCode, HttpStatus, Injectable, Res, UseGuards } from "@nestjs/common";
 import { AuthDto, LogoutDto, SignUpClientDto, SignUpDto } from "./dto";
 import * as bcrypt from 'bcrypt';
 import { GenerateUserIdService } from "src/utils/helper/genUserId/genUserIdHelper.service";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Agent, Client, Currency, User, Wallet } from "src/models";
-import { HitProviderService } from "src/utils/helper";
+import { EncryptService, HitProviderService } from "src/utils/helper";
 import { UserService } from "src/user/user.service";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class AuthService {
@@ -19,10 +20,14 @@ export class AuthService {
     private genUserIdService: GenerateUserIdService,
     private userService: UserService,
     // private readonly httpService: HttpService,
-    private hitProviderService: HitProviderService
+    private hitProviderService: HitProviderService,
+    private encryptService: EncryptService,
+    private jwt: JwtService,
   ) {}
 
   async signin(dto: AuthDto) {
+    // return this.decodeToken('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJVQVRBQU1LSCIsImFwaUtleSI6IjlmZUV1MGs3d3JxVHVjck9FN1VoIn0.HIOOpDwLvZyyBi5S0sRCw7isIJj6MW-0b17D3ipGUZk');
+    // return this.signToken('UATAAMKH','9feEu0k7wrqTucrOE7Uh');
     // find the user by userId
     const user = await this.usersRepository.findOne({
       relations: {
@@ -105,27 +110,28 @@ export class AuthService {
     return responseToUser;
   }
 
-  async signup(dto: SignUpDto) {
+  async signup(dto: SignUpDto, headers) {
     // Generate the password hash
     const salt = await bcrypt.genSalt();
     const hash = await bcrypt.hash(dto.password, salt);
     // save the new user in the DB
     try {
-      // get agentId from currency value
-      const currency = await this.currenciesRepository.findOne({
-        relations: {
-          agents: true,
-        },
+      const dataAgentDecode: any = await this.decodeToken(headers.authorization);
+
+      // get agentId instansce
+      const agent = await this.agentsRepository.findOne({
         where: {
-          code: dto.currency,
+          agentId: dataAgentDecode.sub,
+          apiKey: dataAgentDecode.apiKey,
+        },
+        relations: {
+          currency: true,
         }
       });
-      if (!currency) throw new ForbiddenException('Currency code is wrong, please check again');
-      const agentId: string = currency.agents[0].agentId;
-      // get agentId instansce
-      const agent = await this.agentsRepository.findOneBy({
-        agentId: agentId,
-      });
+
+      if(!agent) throw new ForbiddenException(`Token isn't valid`)
+
+      const agentId: string = agent.agentId
       const userIdUpper = dto.userid.toUpperCase();
       // check user id is exist
       const userExist = await this.userService.getOneUserByUserId(userIdUpper);
@@ -138,7 +144,7 @@ export class AuthService {
         agent,
       });
       const newWallet = await this.walletsRepository.create({
-        name: `${currency.name}-${agentId}`,
+        name: `${agent.currency.name}-${agentId}`,
         balance: 0,
       })
       // this is make relation with cascade join
@@ -225,5 +231,26 @@ export class AuthService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async signToken(agentId: string, apiKey: string): Promise<{ access_token: string }> {
+    const payload = {
+      sub: agentId,
+      apiKey,
+    }
+    const token = await this.jwt.signAsync(payload, {
+      // expiresIn: '1m',
+      secret: 'tes',
+    });
+
+    return {
+      access_token: token,
+    }
+  }
+
+  async decodeToken(token) {
+    const headerAuth: string = token.replace('Bearer ','');
+    const objFromToken = await this.jwt.decode(headerAuth);
+    return objFromToken;
   }
 }

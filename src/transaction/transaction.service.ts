@@ -199,10 +199,10 @@ export class TransactionService {
       message: 'Hit API bet result',
       params: dto,
     });
-    await this.loggerHelperService.debugLog(
-      'Hit API bet result',
-      dto,
-    );
+    // await this.loggerHelperService.debugLog(
+    //   'Hit API bet result',
+    //   dto,
+    // );
     try {
       for (const e of dto) {
         // find transaction with ticket bet Id
@@ -355,12 +355,12 @@ export class TransactionService {
       //   );
       //   throw new ForbiddenException('Duplicate Trans Id');
       // }
-      await this.loggerHelperService.debugLog(
-        `Hit API bet result [Failed Bet Result, Error from catch]`,
-        {
-          error
-        }
-      );
+      // await this.loggerHelperService.debugLog(
+      //   `Hit API bet result [Failed Bet Result, Error from catch]`,
+      //   {
+      //     error
+      //   }
+      // );
       // handle error
       return {
         status: "0",

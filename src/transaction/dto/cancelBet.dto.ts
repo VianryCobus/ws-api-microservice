@@ -1,48 +1,57 @@
-import { IsIn, IsNegative, IsNotEmpty, IsNumber, IsString, Max, Min } from "class-validator";
+import { IsIn, IsNegative, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
 
 export class CancelBetDto {
-  // @IsString()
+  @IsString()
+  @IsOptional()
   // @IsNotEmpty()
   userId: string;
 
-  // @IsNumber()
+  @IsNumber()
+  @IsOptional()
   // @IsNotEmpty()
   transId: number;
 
-  // @IsString()
+  @IsString()
+  @IsOptional()
   // @IsNotEmpty()
   id: string;
 
-  // @IsString()
+  @IsString()
+  @IsOptional()
   // @IsNotEmpty()
   sDate: string;
 
-  // @IsNumber({
-  //   maxDecimalPlaces: 4
-  // })
-  // @Min(-9999999999999999.9999)
-  // @Max(9999999999999999.9999)
+  @IsNumber({
+    maxDecimalPlaces: 4
+  })
+  @Min(-9999999999999999.9999)
+  @Max(9999999999999999.9999)
+  @IsOptional()
   // @IsNotEmpty()
   bAmt: number;
 
-  // @IsNumber({
-  //   maxDecimalPlaces: 4
-  // })
-  // @Min(-9999999999999999.9999)
-  // @Max(-1)
+  @IsNumber({
+    maxDecimalPlaces: 4
+  })
+  @Min(-9999999999999999.9999)
+  @Max(-1)
+  @IsOptional()
   // @IsNotEmpty()
   // @IsNegative()
   payout: number;
 
-  // @IsString()
+  @IsString()
+  @IsOptional()
   // @IsNotEmpty()
   ip: string;
 
-  // @IsString()
+  @IsString()
+  @IsOptional()
   // @IsNotEmpty()
   odds: string;
 
-  // @IsString()
+  @IsString()
+  @IsOptional()
   // @IsNotEmpty()
   // @IsIn([
   //   'HDP',
@@ -54,7 +63,8 @@ export class CancelBetDto {
   //   1,
   //   0
   // ])
-  // @IsNumber()
+  @IsNumber()
+  @IsOptional()
   source: number;
 
   // @IsIn([
@@ -64,6 +74,7 @@ export class CancelBetDto {
   //   4,
   //   5
   // ])
-  // @IsNumber()
+  @IsNumber()
+  @IsOptional()
   status: number;
 }
