@@ -1,47 +1,47 @@
 import { IsDecimal, IsIn, IsNotEmpty, IsNumber, IsString, Max, Min } from "class-validator";
 
 export class PlaceBetDto {
-  @IsString()
-  @IsNotEmpty()
+  // @IsString()
+  // @IsNotEmpty()
   userId: string;
 
-  @IsNumber()
-  @IsNotEmpty()
+  // @IsNumber()
+  // @IsNotEmpty()
   transId: number;
 
-  @IsString()
-  @IsNotEmpty()
+  // @IsString()
+  // @IsNotEmpty()
   id: string;
 
-  @IsString()
-  @IsNotEmpty()
+  // @IsString()
+  // @IsNotEmpty()
   sDate: string;
 
-  @IsNumber({ 
-    maxDecimalPlaces: 4
-  })
-  @Min(-9999999999999999.9999)
-  @Max(9999999999999999.9999)
-  @IsNotEmpty()
+  // @IsNumber({ 
+  //   maxDecimalPlaces: 4
+  // })
+  // @Min(-9999999999999999.9999)
+  // @Max(9999999999999999.9999)
+  // @IsNotEmpty()
   bAmt: number;
 
-  @IsNumber({
-    maxDecimalPlaces: 4
-  })
-  @Min(-9999999999999999.9999)
-  @Max(9999999999999999.9999)
+  // @IsNumber({
+  //   maxDecimalPlaces: 4
+  // })
+  // @Min(-9999999999999999.9999)
+  // @Max(9999999999999999.9999)
   // @IsNotEmpty()
   payout: number;
 
-  @IsString()
+  // @IsString()
   // @IsNotEmpty()
   ip: string;
 
-  @IsString()
+  // @IsString()
   // @IsNotEmpty()
   odds: string;
 
-  @IsString()
+  // @IsString()
   // @IsNotEmpty()
   // @IsIn([
   //   'HDP',
@@ -49,20 +49,20 @@ export class PlaceBetDto {
   // ])
   game: string;
 
-  @IsIn([
-    1,
-    0
-  ])
-  @IsNumber()
+  // @IsIn([
+  //   1,
+  //   0
+  // ])
+  // @IsNumber()
   source: number;
 
-  @IsIn([
-    -1,
-    0,
-    1,
-    4,
-    5
-  ])
-  @IsNumber()
+  // @IsIn([
+  //   -1,
+  //   0,
+  //   1,
+  //   4,
+  //   5
+  // ])
+  // @IsNumber()
   status: number;
 }

@@ -1,11 +1,12 @@
 import { ForbiddenException, HttpCode, HttpStatus, Injectable, Res } from "@nestjs/common";
-import { AuthDto, LogoutDto, SignUpDto } from "./dto";
+import { AuthDto, LogoutDto, SignUpClientDto, SignUpDto } from "./dto";
 import * as bcrypt from 'bcrypt';
 import { GenerateUserIdService } from "src/utils/helper/genUserId/genUserIdHelper.service";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Agent, Currency, User, Wallet } from "src/models";
+import { Agent, Client, Currency, User, Wallet } from "src/models";
 import { HitProviderService } from "src/utils/helper";
+import { UserService } from "src/user/user.service";
 
 @Injectable()
 export class AuthService {
@@ -14,7 +15,9 @@ export class AuthService {
     @InjectRepository(User) private usersRepository: Repository<User>,
     @InjectRepository(Wallet) private walletsRepository: Repository<Wallet>,
     @InjectRepository(Agent) private agentsRepository: Repository<Agent>,
+    @InjectRepository(Client) private clientsRepository: Repository<Client>,
     private genUserIdService: GenerateUserIdService,
+    private userService: UserService,
     // private readonly httpService: HttpService,
     private hitProviderService: HitProviderService
   ) {}
@@ -123,8 +126,11 @@ export class AuthService {
       const agent = await this.agentsRepository.findOneBy({
         agentId: agentId,
       });
-      // const userIdUpper = dto.userid.toUpperCase()
-      const userIdUpper = dto.userid
+      const userIdUpper = dto.userid.toUpperCase();
+      // check user id is exist
+      const userExist = await this.userService.getOneUserByUserId(userIdUpper);
+      if (userExist) throw new ForbiddenException('Credentials already exist'); 
+      // const userIdUpper = dto.userid
       const newUser = await this.usersRepository.create({
         userId: userIdUpper,
         userAgentId: `${agentId}${userIdUpper}`,
@@ -197,5 +203,27 @@ export class AuthService {
       }
     }
     return responseToUser;
+  }
+
+  async signupClient(dto: SignUpClientDto) {
+    try {
+      // username, password, code
+      // check if username is exist
+      const checkClient = await this.clientsRepository.findOne({
+        where: {
+          username: dto.username,
+        }
+      });
+      if (checkClient) throw new ForbiddenException('Username is already exist');
+      const newClient = await this.clientsRepository.create({
+        username: dto.username,
+        password: dto.password,
+        code: dto.code,
+      });
+      await this.clientsRepository.save(newClient);
+
+    } catch (error) {
+      throw error;
+    }
   }
 }

@@ -8,7 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import ormConfig from 'ormconfig';
 import { TransactionModule } from './transaction/transaction.module';
-import { GenerateUserIdModule, HitProviderModule, LoggerHelperModule } from './utils/helper';
+import { EncryptHelperModule, GenerateUserIdModule, HitProviderModule, LoggerHelperModule } from './utils/helper';
 
 @Module({
   imports: [
@@ -38,6 +38,7 @@ import { GenerateUserIdModule, HitProviderModule, LoggerHelperModule } from './u
     UserModule,
     AuthModule,
     // PrismaModule,
+    EncryptHelperModule,
     GenerateUserIdModule,
     HitProviderModule,
     TransactionModule,

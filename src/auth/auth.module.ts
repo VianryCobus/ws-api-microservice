@@ -1,7 +1,7 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Agent, Currency, User, Wallet } from 'src/models';
+import { Agent, Client, Currency, User, Wallet } from 'src/models';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
@@ -13,6 +13,7 @@ import { AuthService } from './auth.service';
       Wallet,
       Currency,
       Agent,
+      Client
     ]),
   ],
   controllers: [AuthController],

@@ -1,9 +1,8 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Currency } from "./currency.entity";
 import { User } from "./user.entity";
 
-@Entity('Agents')
-export class Agent {
+@Entity('Clients')
+export class Client {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -11,34 +10,40 @@ export class Agent {
     type: 'varchar',
     length: 255,
     unique: true,
-  })
-  agentId: string;
-
-  @Column({
-    type: 'varchar',
-    length: 255,
+    nullable: true,
   })
   username: string;
 
   @Column({
     type: 'varchar',
     length: 255,
+    nullable: true,
+  })
+  password: string;
+
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
   })
   apiKey: string;
 
-  @OneToMany(() => User, (user) => user.agent)
-  users: User[]
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  code: string;
 
-  @ManyToOne(() => Currency, (currency) => currency.agents)
-  @JoinColumn()
-  currency: Currency
+  // @OneToMany(() => User, (user) => user.client)
+  // users: User[];
 
   @CreateDateColumn()
-  createdAt;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updatedAt;
+  updatedAt: Date;
 
   @DeleteDateColumn()
-  deletedAt;
+  deletedAt: Date;
 }

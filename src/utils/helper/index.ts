@@ -4,3 +4,5 @@ export * from './hitProvider/hitProviderHelper.module';
 export * from './hitProvider/hitProviderHelper.service';
 export * from './logger/loggerHelper.module';
 export * from './logger/loggerHelper.service';
+export * from './encrypt/encryptHelper.module';
+export * from './encrypt/encryptHelper.service';

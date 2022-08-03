@@ -85,4 +85,22 @@ export class UserService {
       throw err;
     }
   }
+
+  // get user by userId
+  getOneUserByUserId(userId: string): Promise<User> {
+    try {
+      const user = this.usersRepository.findOne({
+        where: {
+          userId: userId,
+        },
+        relations: {
+          wallet: true,
+          agent: true,
+        }
+      });
+      return user;
+    } catch (err) {
+      throw err;
+    }
+  }
 }
