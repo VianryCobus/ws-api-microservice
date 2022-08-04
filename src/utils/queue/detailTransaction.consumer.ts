@@ -73,6 +73,7 @@ export class DetailTransactionConsumer {
         const checkTransactionData = await this.transactionsRepository.findOne({
           where: {
             ticketBetId: (e.pid) ? e.pid : e.id,
+            ep: 'bet',
           }
         });
         const gameType: string = checkTransactionData.game;

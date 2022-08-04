@@ -164,9 +164,10 @@ export class DetailTransaction {
   info: string;
 
   @Column({
-    type: 'varchar',
-    length: 255,
-    nullable: true,
+    type: 'decimal',
+    precision: 20,
+    scale: 4,
+    default: 0,
   })
   odds: string;
 
@@ -199,16 +200,18 @@ export class DetailTransaction {
   othersgame_en: string;
 
   @Column({
-    type: 'varchar',
-    length: 255,
-    nullable: true,
+    type: 'decimal',
+    precision: 20,
+    scale: 4,
+    default: 0,
   })
   bAmt: string;
 
   @Column({
-    type: 'varchar',
-    length: 255,
-    nullable: true,
+    type: 'decimal',
+    precision: 20,
+    scale: 4,
+    default: 0,
   })
   wAmt: string;
 
@@ -262,9 +265,10 @@ export class DetailTransaction {
   isMobile: number;
 
   @Column({
-    type: 'varchar',
-    length: 255,
-    nullable: true,
+    type: 'decimal',
+    precision: 20,
+    scale: 4,
+    default: 0,
   })
   commision: string;
 
