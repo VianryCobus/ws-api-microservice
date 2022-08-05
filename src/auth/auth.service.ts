@@ -25,9 +25,10 @@ export class AuthService {
   ) {}
 
   async signin(dto: AuthDto, headers) {
-    if(!headers.authorization) throw new ForbiddenException(`Token is empty`);
     // decode request headers
     const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
+
+    if(!dataClientDecode.status) throw new ForbiddenException(`Please provide the correct Client token`);
 
     // find the client
     const client = await this.clientsRepository.findOne({
@@ -142,9 +143,9 @@ export class AuthService {
     const hash = await bcrypt.hash(dto.password, salt);
     // save the new user in the DB
     try {
-      if(!headers.authorization) throw new ForbiddenException(`Token is empty`);
-
       const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
+
+      if(!dataClientDecode.status) throw new ForbiddenException(`Please provide the correct Client token`);
 
       // find the client
       const client = await this.clientsRepository.findOne({
@@ -247,9 +248,11 @@ export class AuthService {
 
   async signupClient(dto: SignUpClientDto, headers) {
     try {
-      if(!headers.authorization) throw new ForbiddenException(`Token is empty`);
       // decode request headers
       const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
+
+      if(!dataClientDecode.status) throw new ForbiddenException(`Please provide the correct agent token`);
+      
       // find the agent
       const agent = await this.agentsRepository.findOne({
         where: {

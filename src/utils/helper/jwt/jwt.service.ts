@@ -28,11 +28,51 @@ export class JwtHelperService {
   }
 
   async decodeToken(token) {
-    const headerAuth: string = token.replace('Bearer ','');
-    const objFromToken: any = await this.jwt.decode(headerAuth);
-    return {
-      headerAuth,
-      objFromToken
+    if(!token) {
+      return {
+        status: false,
+        headerAuth: token,
+        objFromToken: {},
+      }
+    }
+    const separate: Array<string> = token.split(' ');
+    if(separate[0] != 'Bearer'){
+      return {
+        status: false,
+        headerAuth: token,
+        objFromToken: {},
+      }
+    } else {
+      const headerAuth: string = token.replace('Bearer ','');
+      if(headerAuth == '' || headerAuth == 'Bearer') {
+        return {
+          status: false,
+          headerAuth,
+          objFromToken: {},
+        }
+      } else {
+        try {
+          let objFromToken: any = await this.jwt.decode(headerAuth);
+          if(objFromToken == null){
+            return {
+              status: false,
+              headerAuth,
+              objFromToken: {},
+            }
+          }
+          return {
+            status: true,
+            headerAuth,
+            objFromToken
+          }
+        } catch (error) {
+          return {
+            status: false,
+            headerAuth,
+            objFromToken: {},
+          }
+        }
+      }
     }
   }
 }
