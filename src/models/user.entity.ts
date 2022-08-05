@@ -37,13 +37,13 @@ export class User {
   })
   hash: string;
 
-  @ManyToOne(() => Agent, (agent) => agent.users)
-  @JoinColumn()
-  agent: Agent
-
-  // @ManyToOne(() => Client, (client) => client.users)
+  // @ManyToOne(() => Agent, (agent) => agent.users)
   // @JoinColumn()
-  // client: Client
+  // agent: Agent
+
+  @ManyToOne(() => Client, (client) => client.users)
+  @JoinColumn()
+  client: Client
 
   @OneToMany(() => Transaction, (transaction) => transaction.user)
   transactions: Transaction[]

@@ -8,7 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import ormConfig from 'ormconfig';
 import { TransactionModule } from './transaction/transaction.module';
-import { EncryptModule, GenerateUserIdModule, HitProviderModule, LoggerHelperModule } from './utils/helper';
+import { EncryptModule, GenerateUserIdModule, HitProviderModule, JwtHelperModule, LoggerHelperModule } from './utils/helper';
 
 @Module({
   imports: [
@@ -43,6 +43,7 @@ import { EncryptModule, GenerateUserIdModule, HitProviderModule, LoggerHelperMod
     HitProviderModule,
     TransactionModule,
     LoggerHelperModule,
+    JwtHelperModule,
   ],
   controllers: [AppController],
   providers: [AppService],

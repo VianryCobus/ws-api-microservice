@@ -77,7 +77,9 @@ export class UserService {
         },
         relations: {
           wallet: true,
-          agent: true,
+          client: {
+            agent: true,
+          }
         }
       });
       return user;
@@ -95,7 +97,9 @@ export class UserService {
         },
         relations: {
           wallet: true,
-          agent: true,
+          client: {
+            agent: true,
+          }
         }
       });
       return user;

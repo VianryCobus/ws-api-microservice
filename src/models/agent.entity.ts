@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Client } from "./client.entity";
 import { Currency } from "./currency.entity";
 import { User } from "./user.entity";
 
@@ -32,8 +33,11 @@ export class Agent {
   })
   agentKey: string;
 
-  @OneToMany(() => User, (user) => user.agent)
-  users: User[]
+  @OneToMany(() => Client, (client) => client.agent)
+  clients: Client[]
+
+  // @OneToMany(() => User, (user) => user.agent)
+  // users: User[]
 
   @ManyToOne(() => Currency, (currency) => currency.agents)
   @JoinColumn()

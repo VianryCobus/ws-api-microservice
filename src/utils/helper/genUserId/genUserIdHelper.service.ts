@@ -36,8 +36,13 @@ export class GenerateUserIdService {
   //   });
   //   const agentId = getcurr.agents[0].agentId;
     const getUser = await this.usersRepository.findOne({
+      relations: {
+        client: true,
+      },
       where: {
-        agent: agentId,
+        client: {
+          agent: agentId,
+        }
       },
       order: {
         createdAt: "DESC",

@@ -1,39 +1,9 @@
-import { IsBoolean, IsEmpty, IsEnum, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { IsBoolean, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
 
-export class AuthDto {
+export class UpdateAccountProviderDto {
   @IsString()
   @IsNotEmpty()
   userid: string;
-
-  @IsString()
-  @IsNotEmpty()
-  password: string;
-
-  @IsIn([
-    'en',
-    'zh-cn',
-    'id-id',
-    'th-th',
-    'vi-vn'
-  ])
-  @IsString()
-  @IsOptional()
-  lang: string;
-
-  @IsIn(['1','0'])
-  @IsString()
-  @IsOptional()
-  se: string;
-
-  @IsIn(['1','0'])
-  @IsString()
-  @IsOptional()
-  im: string;
-
-  @IsIn(['1','2','3','4'])
-  @IsString()
-  @IsOptional()
-  ot: string;
 
   @IsString()
   @IsOptional()
@@ -167,5 +137,4 @@ export class AuthDto {
   @IsNumber()
   @IsOptional()
   maxpermatchgrpotherssport: number;
-
 }

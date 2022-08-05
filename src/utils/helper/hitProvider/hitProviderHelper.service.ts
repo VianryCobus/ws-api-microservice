@@ -114,7 +114,7 @@ export class HitProviderService {
     const apiKey: String = params.apiKey;
     const hashOrigin: String = `${apiKey}agentid=${agentId}`;
     const Hash = this.md5(hashOrigin);
-    let Url: string = `${process.env.WS_URL}/SportAgent/${agentId}/Ticket?hash=${Hash}&ticketid=${ticketBetId}`;
+    let Url: string = `${process.env.WS_URL_TICKET}/SportAgent/${agentId}/Ticket?hash=${Hash}&ticketid=${ticketBetId}`;
     this.loggerHelperService.debugLog(
       'Hit Provider API fetch ticket details',
       {
@@ -154,7 +154,7 @@ export class HitProviderService {
     const apiKey: String = params.apiKey;
     const hashOrigin: String = `${apiKey}agentid=${agentId}`;
     const Hash = this.md5(hashOrigin);
-    let Url: string = `${process.env.WS_URL}/SportAgent/${agentId}/Parlay/${ticketBetId}?hash=${Hash}`;
+    let Url: string = `${process.env.WS_URL_TICKET}/SportAgent/${agentId}/Parlay/${ticketBetId}?hash=${Hash}`;
     this.loggerHelperService.debugLog(
       'Hit Provider API fetch ticket details parlay',
       {
@@ -181,6 +181,46 @@ export class HitProviderService {
           status: false,
           data: getProvider.data.data,
         };
+        break;
+      default:
+    }
+    return responseProvider;
+  }
+
+  // update account userId
+  async updateAccount(params,paramsJson) {
+    const agentId: String = params.agentId;
+    const userId: String = `${agentId}${params.userId}`;
+    const apiKey: String = params.apiKey;
+    const hashOrigin: String = `${apiKey}agentid=${agentId}&userid=${userId}`;
+    const Hash = this.md5(hashOrigin);
+    let Url: string = `${process.env.WS_URL}/SportMember/${userId}`;
+    this.loggerHelperService.debugLog(
+      `Hit Provider API update account (userid)`,
+      {
+        hashOrigin,
+        Hash,
+        Url,
+      }
+    );
+    const postProvider = await axios.post(Url,paramsJson);
+    this.loggerHelperService.debugLog(
+      `Return Hit Provider API update account (userid)`,
+      postProvider.data,
+    );
+    let responseProvider: any;
+    switch(postProvider.data.status){
+      case 'success':
+        responseProvider = {
+          status: true,
+          loginUrl: postProvider.data.data.logUrl,
+        }
+        break;
+      case 'fail':
+        responseProvider = {
+          status: false,
+          message: postProvider.data.message,
+        }
         break;
       default:
     }

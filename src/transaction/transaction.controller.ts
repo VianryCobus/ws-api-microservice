@@ -40,7 +40,7 @@ export class TransactionController {
   @HttpCode(200)
   cancelBet(@Body(new ParseArrayPipe(
     {
-      items:CancelBetDto ,
+      items:CancelBetDto,
       whitelist: true,
     }
   )) dto: CancelBetDto[]) {

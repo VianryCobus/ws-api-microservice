@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Agent } from "./agent.entity";
 import { User } from "./user.entity";
 
 @Entity('Clients')
@@ -26,7 +27,7 @@ export class Client {
     length: 255,
     nullable: true,
   })
-  apiKey: string;
+  clientKey: string;
 
   @Column({
     type: 'varchar',
@@ -35,8 +36,12 @@ export class Client {
   })
   code: string;
 
-  // @OneToMany(() => User, (user) => user.client)
-  // users: User[];
+  @ManyToOne(() => Agent, (agent) => agent.clients)
+  @JoinColumn()
+  agent: Agent
+
+  @OneToMany(() => User, (user) => user.client)
+  users: User[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -13,4 +13,8 @@ export class SignUpDto {
   @IsNotEmpty()
   @Length(3,3)
   currency: string;
+
+  @IsString()
+  @IsNotEmpty()
+  username: string;
 }

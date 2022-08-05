@@ -19,6 +19,12 @@ export class Currency {
   })
   name: string;
 
+  @Column({
+    type: 'varchar',
+    length: 255,
+  })
+  ratio: string;
+
   @OneToMany(() => Agent, (agent) => agent.currency)
   agents: Agent[]
 

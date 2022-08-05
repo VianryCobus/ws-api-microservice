@@ -5,9 +5,8 @@ import { GenerateUserIdService } from "src/utils/helper/genUserId/genUserIdHelpe
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Agent, Client, Currency, User, Wallet } from "src/models";
-import { EncryptService, HitProviderService } from "src/utils/helper";
+import { EncryptService, HitProviderService, JwtHelperService } from "src/utils/helper";
 import { UserService } from "src/user/user.service";
-import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class AuthService {
@@ -22,16 +21,43 @@ export class AuthService {
     // private readonly httpService: HttpService,
     private hitProviderService: HitProviderService,
     private encryptService: EncryptService,
-    private jwt: JwtService,
+    private jwtHelperService: JwtHelperService,
   ) {}
 
-  async signin(dto: AuthDto) {
-    // return this.decodeToken('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJVQVRBQU1LSCIsImFwaUtleSI6IjlmZUV1MGs3d3JxVHVjck9FN1VoIn0.HIOOpDwLvZyyBi5S0sRCw7isIJj6MW-0b17D3ipGUZk');
-    // return this.signToken('UATAAMKH','9feEu0k7wrqTucrOE7Uh');
-    // find the user by userId
-    const user = await this.usersRepository.findOne({
+  async signin(dto: AuthDto, headers) {
+    if(!headers.authorization) throw new ForbiddenException(`Token is empty`);
+    // decode request headers
+    const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
+
+    // find the client
+    const client = await this.clientsRepository.findOne({
       relations: {
         agent: true,
+        users: true,
+      },
+      where: {
+        clientKey: dataClientDecode.headerAuth,
+        code: dataClientDecode.objFromToken.sub,
+        username: dataClientDecode.objFromToken.username,
+        agent: {
+          agentId: dataClientDecode.objFromToken.agentId,
+          apiKey: dataClientDecode.objFromToken.agentApiKey,
+        },
+        users: {
+          userId: dto.userid,
+        }
+      }
+    });
+    // return client;
+    // check if the client token is correct
+    if (!client) throw new ForbiddenException(`Token isn't valid`);
+    
+    // find the user by userId and clientToken
+    const user = await this.usersRepository.findOne({
+      relations: {
+        client: {
+          agent: true,
+        }
       },
       where: {
         userId: dto.userid,
@@ -45,8 +71,8 @@ export class AuthService {
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect')
     // hit api provider
     const params = {
-      apiKey: user.agent.apiKey,
-      agentId: user.agent.agentId,
+      apiKey: user.client.agent.apiKey,
+      agentId: user.client.agent.agentId,
       userId: user.userId,
       lang: dto.lang,
       se: dto.se,
@@ -65,7 +91,7 @@ export class AuthService {
       minbet: dto.minbet,
       commisiongrphdp: dto.commisiongrphdp,
       commisiongrp1x2: dto.commisiongrp1x2,
-      commisiongrpother: dto.commisiongrpother,
+      commisiongrpothers: dto.commisiongrpothers,
       commisionmixparlay3: dto.commisionmixparlay3,
       commisionmixparlay4: dto.commisionmixparlay4,
       commisionmixparlay5: dto.commisionmixparlay5,
@@ -116,35 +142,43 @@ export class AuthService {
     const hash = await bcrypt.hash(dto.password, salt);
     // save the new user in the DB
     try {
-      const dataAgentDecode: any = await this.decodeToken(headers.authorization);
+      if(!headers.authorization) throw new ForbiddenException(`Token is empty`);
 
-      // get agentId instansce
-      const agent = await this.agentsRepository.findOne({
-        where: {
-          agentId: dataAgentDecode.sub,
-          apiKey: dataAgentDecode.apiKey,
-        },
+      const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
+
+      // find the client
+      const client = await this.clientsRepository.findOne({
         relations: {
-          currency: true,
+          agent: true,
+        },
+        where: {
+          clientKey: dataClientDecode.headerAuth,
+          code: dataClientDecode.objFromToken.sub,
+          username: dataClientDecode.objFromToken.username,
+          agent: {
+            agentId: dataClientDecode.objFromToken.agentId,
+            apiKey: dataClientDecode.objFromToken.agentApiKey,
+          }
         }
       });
 
-      if(!agent) throw new ForbiddenException(`Token isn't valid`)
+      if(!client) throw new ForbiddenException(`Token isn't valid`)
 
-      const agentId: string = agent.agentId
+      const agentId: string = client.agent.agentId
       const userIdUpper = dto.userid.toUpperCase();
       // check user id is exist
       const userExist = await this.userService.getOneUserByUserId(userIdUpper);
       if (userExist) throw new ForbiddenException('Credentials already exist'); 
       // const userIdUpper = dto.userid
       const newUser = await this.usersRepository.create({
-        userId: userIdUpper,
+        userId: `${client.code}${userIdUpper}`,
         userAgentId: `${agentId}${userIdUpper}`,
         hash,
-        agent,
+        username: dto.username,
+        client,
       });
       const newWallet = await this.walletsRepository.create({
-        name: `${agent.currency.name}-${agentId}`,
+        name: `${client.agent.currency.name}-${agentId}`,
         balance: 0,
       })
       // this is make relation with cascade join
@@ -179,7 +213,7 @@ export class AuthService {
     // find the user by userId
     const user = await this.usersRepository.findOne({
       relations: {
-        agent: true,
+        client: true,
       },
       where: {
         userId: dto.userId
@@ -189,8 +223,8 @@ export class AuthService {
     if (!user) throw new ForbiddenException('Credentials incorrect, please check the userId');
     // hit provider in order to hit provider endpoint
     const params = {
-      apiKey: user.agent.apiKey,
-      agentId: user.agent.agentId,
+      apiKey: user.client.agent.apiKey,
+      agentId: user.client.agent.agentId,
       userId: user.userId,
     };
     let responseToUser: Object;
@@ -211,46 +245,51 @@ export class AuthService {
     return responseToUser;
   }
 
-  async signupClient(dto: SignUpClientDto) {
+  async signupClient(dto: SignUpClientDto, headers) {
     try {
+      if(!headers.authorization) throw new ForbiddenException(`Token is empty`);
+      // decode request headers
+      const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
+      // find the agent
+      const agent = await this.agentsRepository.findOne({
+        where: {
+          agentKey: dataClientDecode.headerAuth,
+          agentId: dataClientDecode.objFromToken.sub,
+          apiKey: dataClientDecode.objFromToken.apiKey,
+        }
+      });
+      if (!agent) throw new ForbiddenException(`Token isn't valid!`);
       // username, password, code
       // check if username is exist
       const checkClient = await this.clientsRepository.findOne({
-        where: {
-          username: dto.username,
-        }
+        where: [
+          { username: dto.username },
+          { code: dto.code }
+        ]
       });
-      if (checkClient) throw new ForbiddenException('Username is already exist');
+      if (checkClient) throw new ForbiddenException('Username or code is already exist');
+      // payload to encrypt jwt
+      const payload = {
+        clientCode: dto.code,
+        clientUsername: dto.username,
+        agentId: agent.agentId,
+        agentApiKey: agent.apiKey,
+      };
+      const signToken = await this.jwtHelperService.signToken(payload,'clientKey');
       const newClient = await this.clientsRepository.create({
         username: dto.username,
         password: dto.password,
         code: dto.code,
+        agent,
+        clientKey: signToken.access_token,
       });
       await this.clientsRepository.save(newClient);
-
+      return {
+        status: true,
+        msg: "Client Created!",
+      }
     } catch (error) {
       throw error;
     }
-  }
-
-  async signToken(agentId: string, apiKey: string): Promise<{ access_token: string }> {
-    const payload = {
-      sub: agentId,
-      apiKey,
-    }
-    const token = await this.jwt.signAsync(payload, {
-      // expiresIn: '1m',
-      secret: 'tes',
-    });
-
-    return {
-      access_token: token,
-    }
-  }
-
-  async decodeToken(token) {
-    const headerAuth: string = token.replace('Bearer ','');
-    const objFromToken = await this.jwt.decode(headerAuth);
-    return objFromToken;
   }
 }

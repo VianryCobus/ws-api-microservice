@@ -140,8 +140,8 @@ export class TransactionService {
       // add to queue in order to retreive detail transaction job
       await this.queue.add('detail-trx-job', {
         ticketBetId: dto.id,
-        agentId: user.agent.agentId,
-        apiKey: user.agent.apiKey,
+        agentId: user.client.agent.agentId,
+        apiKey: user.client.agent.apiKey,
       },{
         removeOnComplete: true,
         delay: 5000,
@@ -184,7 +184,9 @@ export class TransactionService {
 
       await this.loggerHelperService.debugLog(
         'Hit API place bet [Failed Place Bet, Error from catch]',
-        error,
+        {
+          error
+        },
       );
       return {
         status: "0",
@@ -328,8 +330,8 @@ export class TransactionService {
               // add to queue in order to retreive detail transaction job
               await this.queue.add('detail-trx-job', {
                 ticketBetId: transaction.ticketBetId,
-                agentId: user.agent.agentId,
-                apiKey: user.agent.apiKey,
+                agentId: user.client.agent.agentId,
+                apiKey: user.client.agent.apiKey,
               },{
                 removeOnComplete: true,
                 delay: 5000,
@@ -355,12 +357,12 @@ export class TransactionService {
       //   );
       //   throw new ForbiddenException('Duplicate Trans Id');
       // }
-      // await this.loggerHelperService.debugLog(
-      //   `Hit API bet result [Failed Bet Result, Error from catch]`,
-      //   {
-      //     error
-      //   }
-      // );
+      await this.loggerHelperService.debugLog(
+        `Hit API bet result [Failed Bet Result, Error from catch]`,
+        {
+          error
+        }
+      );
       // handle error
       return {
         status: "0",
@@ -521,7 +523,9 @@ export class TransactionService {
       // }
       await this.loggerHelperService.debugLog(
         'Hit API rollback bet result [Failed Rollback bet result, Error from catch]',
-        error,
+        {
+          error
+        },
       );
       // handle error
       return {
@@ -683,7 +687,9 @@ export class TransactionService {
       // }
       await this.loggerHelperService.debugLog(
         'Hit API cancel bet [Failed Cancel Bet, Error from catch]',
-        error,
+        {
+          error
+        },
       );
       // handle error
       return {

@@ -6,3 +6,5 @@ export * from './logger/loggerHelper.module';
 export * from './logger/loggerHelper.service';
 export * from './encrypt/encryptHelper.module';
 export * from './encrypt/encryptHelper.service';
+export * from './jwt/jwt.module';
+export * from './jwt/jwt.service';
