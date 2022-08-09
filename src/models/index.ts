@@ -6,3 +6,5 @@ export * from './user.entity';
 export * from './wallet.entity';
 export * from './detailTransaction.entity';
 export * from './client.entity';
+export * from './config.entity';
+export * from './historyLogin.entity';

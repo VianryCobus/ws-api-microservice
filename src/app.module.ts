@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -9,6 +9,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import ormConfig from 'ormconfig';
 import { TransactionModule } from './transaction/transaction.module';
 import { EncryptModule, GenerateUserIdModule, HitProviderModule, JwtHelperModule, LoggerHelperModule } from './utils/helper';
+import { LoggerMiddleware } from './utils/middleware';
+import { ClientModule } from './client/client.module';
 
 @Module({
   imports: [
@@ -37,6 +39,7 @@ import { EncryptModule, GenerateUserIdModule, HitProviderModule, JwtHelperModule
     // }),
     UserModule,
     AuthModule,
+    ClientModule,
     // PrismaModule,
     EncryptModule,
     GenerateUserIdModule,
@@ -48,4 +51,10 @@ import { EncryptModule, GenerateUserIdModule, HitProviderModule, JwtHelperModule
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.
+      apply(LoggerMiddleware)
+        .forRoutes('provider','v1/client')
+  }
+}

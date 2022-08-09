@@ -37,6 +37,11 @@ export class User {
   })
   hash: string;
 
+  @Column({
+    nullable: true,
+  })
+  mode: number;
+
   // @ManyToOne(() => Agent, (agent) => agent.users)
   // @JoinColumn()
   // agent: Agent
