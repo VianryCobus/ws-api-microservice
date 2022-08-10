@@ -42,6 +42,13 @@ export class User {
   })
   mode: number;
 
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  playerToken: string;
+
   // @ManyToOne(() => Agent, (agent) => agent.users)
   // @JoinColumn()
   // agent: Agent

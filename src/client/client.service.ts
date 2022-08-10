@@ -281,9 +281,8 @@ export class ClientService {
     // REGISTER PLAYER
     if(!userExist) {
       // Generate the password hash
-      // const salt = await bcrypt.genSalt();
-      // const hash = await bcrypt.hash('ws-sport', salt);
-      const hash = dto.token;
+      const salt = await bcrypt.genSalt();
+      const hash = await bcrypt.hash('ws-sport', salt);
       // save the new user in the DB
       try {
         const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
@@ -321,6 +320,7 @@ export class ClientService {
           hash,
           username: dto.username,
           client,
+          playerToken: dto.token,
         });
         const newWallet = await this.walletsRepository.create({
           name: `${client.agent.currency.name}-${agentId}`,
@@ -338,7 +338,8 @@ export class ClientService {
           hash,
           username: dto.username,
           client,
-          mode: 1
+          mode: 1,
+          playerToken: dto.token,
         });
         const newWalletFun = await this.walletsRepository.create({
           name: `${client.agent.currency.name}-${agentId}`,
@@ -442,7 +443,7 @@ export class ClientService {
     // if user doesn't exist throw exception
     if (!user) throw new UnauthorizedException('Credentials incorrect, please check the user id or mode options');
     // if password incorrect throw exception
-    if (dto.token != user.hash) throw new UnauthorizedException('Credentials incorrect')
+    if (dto.token != user.playerToken) throw new UnauthorizedException('Credentials incorrect')
     // hit api provider
     const params = {
       apiKey: user.client.agent.apiKey,
@@ -451,7 +452,7 @@ export class ClientService {
       // lang: dto.lang,
       lang: langGame,
       se: dto.se,
-      im: 1,
+      im: dto.im,
       ot: dto.ot,
     };
     const paramsJson = {
