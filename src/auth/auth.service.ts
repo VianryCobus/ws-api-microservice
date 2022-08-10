@@ -285,6 +285,7 @@ export class AuthService {
         code: dto.code,
         agent,
         clientKey: signToken.access_token,
+        autoRegis: dto.autoregis,
       });
       await this.clientsRepository.save(newClient);
       return {

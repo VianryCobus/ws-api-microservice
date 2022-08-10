@@ -1,5 +1,6 @@
-import { Body, Controller, Get, HttpCode, ParseIntPipe, Post, Req, Request, UseGuards, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, ParseIntPipe, Post, Req, Request, UseFilters, UseGuards, ValidationPipe } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import { ClientExceptionFilter } from "src/utils/exception";
 import { TokenGuard } from "src/utils/guard";
 import { AuthService } from "./auth.service";
 import { AuthDto, LogoutDto, SignUpClientDto, SignUpDto } from "./dto";
@@ -24,6 +25,7 @@ export class AuthController {
   }
 
   @Post('signupCLient')
+  @UseFilters(ClientExceptionFilter)
   @HttpCode(200)
   signupClient(@Body(new ValidationPipe()) dto: SignUpClientDto, @Request() req) {
     return this.authService.signupClient(dto,req.headers);

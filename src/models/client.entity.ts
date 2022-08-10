@@ -36,6 +36,11 @@ export class Client {
   })
   code: string;
 
+  @Column({
+    nullable: true,
+  })
+  autoRegis: number;
+
   @ManyToOne(() => Agent, (agent) => agent.clients)
   @JoinColumn()
   agent: Agent

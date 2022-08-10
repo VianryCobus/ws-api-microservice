@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsIn, IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class SignUpClientDto {
   @IsString()
@@ -12,4 +12,9 @@ export class SignUpClientDto {
   @IsString()
   @IsNotEmpty()
   code: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @IsIn([0,1])
+  autoregis: number;
 }

@@ -16,7 +16,8 @@ export class ClientController {
   @UseFilters(ClientExceptionFilter)
   login(@Body(new ValidationPipe()) dto: ClientAuthDto, @Request() req) {
     // console.log(req.connection.remoteAddress)
-    return this.clientService.login(dto,req.headers);
+    // return this.clientService.login(dto,req.headers);
+    return this.clientService.loginNew(dto,req.headers);
   }
 
   @Post('register')
