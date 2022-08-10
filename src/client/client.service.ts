@@ -151,18 +151,26 @@ export class ClientService {
     const hitProvider = await this.hitProviderService.login(params,paramsJson);
     // send back the user
     if(hitProvider.status){
+      // responseToUser = {
+      //   status: true,
+      //   msg: 'signed in',
+      //   data: user.userId,
+      //   loginUrl: hitProvider,
+      // }
       responseToUser = {
-        status: true,
-        msg: 'signed in',
-        data: user.userId,
-        loginUrl: hitProvider,
+        code: 0,
+        url: hitProvider.loginUrl,
       }
     } else {
+      // responseToUser = {
+      //   status: true,
+      //   msg: hitProvider.message,
+      //   data: user.userId,
+      //   loginUrl: null,
+      // }
       responseToUser = {
-        status: true,
-        msg: hitProvider.message,
-        data: user.userId,
-        loginUrl: null,
+        code: 1,
+        message: hitProvider.message,
       }
     }
     return responseToUser;
@@ -248,14 +256,18 @@ export class ClientService {
 
       let returnData;
       if (userSaved && userSavedFun) {
+        // returnData = {
+        //   status: true,
+        //   msg: 'signed up successfully',
+        //   data: {
+        //     username: dto.username,
+        //     userid: userSaved.userId,
+        //     useridFun: userSavedFun.userId,
+        //   },
+        // }
         returnData = {
-          status: true,
-          msg: 'signed up successfully',
-          data: {
-            username: dto.username,
-            userid: userSaved.userId,
-            useridFun: userSavedFun.userId,
-          },
+          code: 0,
+          msg: 'signed up successfully'
         }
       } else {
         // returnData = {
@@ -352,15 +364,15 @@ export class ClientService {
 
         let returnData;
         if (userSaved && userSavedFun) {
-          returnData = {
-            status: true,
-            msg: 'signed up successfully',
-            data: {
-              username: dto.username,
-              userid: userSaved.userId,
-              useridFun: userSavedFun.userId,
-            },
-          }
+          // returnData = {
+          //   status: true,
+          //   msg: 'signed up successfully',
+          //   data: {
+          //     username: dto.username,
+          //     userid: userSaved.userId,
+          //     useridFun: userSavedFun.userId,
+          //   },
+          // }
         } else {
           // returnData = {
           //   status: false,
@@ -495,18 +507,26 @@ export class ClientService {
     const hitProvider = await this.hitProviderService.login(params,paramsJson);
     // send back the user
     if(hitProvider.status){
+      // responseToUser = {
+      //   status: true,
+      //   msg: 'signed in',
+      //   data: user.userId,
+      //   loginUrl: hitProvider,
+      // }
       responseToUser = {
-        status: true,
-        msg: 'signed in',
-        data: user.userId,
-        loginUrl: hitProvider,
+        code: 0,
+        url: hitProvider.loginUrl,
       }
     } else {
+      // responseToUser = {
+      //   status: true,
+      //   msg: hitProvider.message,
+      //   data: user.userId,
+      //   loginUrl: null,
+      // }
       responseToUser = {
-        status: true,
-        msg: hitProvider.message,
-        data: user.userId,
-        loginUrl: null,
+        code: 1,
+        message: hitProvider.message,
       }
     }
     return responseToUser;
