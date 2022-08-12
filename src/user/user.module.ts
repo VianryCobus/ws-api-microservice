@@ -2,6 +2,7 @@ import { BullModule } from '@nestjs/bull';
 import { Global, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Agent, Balance, Currency, User, Wallet } from 'src/models';
+import { HistoryBalancePlayersMysqlHL } from 'src/models/models_hl';
 import { HistoryBalanceConsumer } from 'src/utils/queue';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';

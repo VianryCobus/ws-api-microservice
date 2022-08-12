@@ -19,4 +19,19 @@ export class UserController {
     return 'update Acc';
   }
 
+  @Get('balHl')
+  getbalancehl(@Query() query) {
+    return this.userService.getbalancehl(query.username);
+  }
+
+  @Get('passCompare')
+  getPassDecrypt(@Query() query) {
+    return this.userService.passCompare(query.passwordHash,query.passwordOrigin);
+  }
+
+  @Get('passHashing')
+  getPassHashing(@Query() query) {
+    return this.userService.passHashing(query.password);
+  }
+
 }

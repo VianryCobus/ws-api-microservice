@@ -1,16 +1,22 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectConnection, InjectDataSource, InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { LoggerHelperService } from 'src/utils/helper';
 import { Agent, Currency, User, Wallet } from 'src/models';
-import { Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { BalanceDto } from './dto';
+import { HistoryBalancePlayersMysqlHL, MasterPlayersMysqlHl } from 'src/models/models_hl';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
   private logger: Logger;
   constructor(
+    // === @InjectConnection has deprecated
+    // @InjectConnection('mysqlHlConnection') private dataSourceMysqlHl: DataSource,
+    @InjectDataSource('mysqlHlConnection') private dataSourceMysqlHl: DataSource,
+
     @InjectRepository(Currency) private currenciesRepository: Repository<Currency>,
     @InjectRepository(User) private usersRepository: Repository<User>,
     @InjectRepository(Wallet) private walletsRepository: Repository<Wallet>,
@@ -37,6 +43,19 @@ export class UserService {
 
     // find user balance with userId
     const balance = await this.getOneUserByAgentUserId(dto.userId);
+    // variable declaration
+    let balancePlayer: Number = balance.wallet.balance;
+
+    if(balance.client.code == "HPL") {
+      const balanceHl = await this.getbalancehl(balance.username);
+      return {
+        status: "1",
+        data: {
+          CurrentCredit: parseFloat(Number(balanceHl).toFixed(4)),
+        },
+        message: null,
+      };
+    }
     // if user and balance does not exist throw exception
     let returnData;
     if (!balance) {
@@ -53,7 +72,7 @@ export class UserService {
       returnData = {
         status: "1",
         data: {
-          CurrentCredit: Number(balance.wallet.balance).toFixed(4),
+          CurrentCredit: parseFloat(Number(balance.wallet.balance).toFixed(4)),
         },
         message: null,
       }
@@ -64,6 +83,38 @@ export class UserService {
       // );
     }
     return returnData;
+  }
+
+  // MYSQL HAPPY LUCK
+  async getbalancehl(username: string){
+    try {
+      const player = await this.dataSourceMysqlHl.getRepository(MasterPlayersMysqlHl).findOne({
+        where: {
+          username_players: username,
+        }
+      });
+      const historyBalance = await this.dataSourceMysqlHl.getRepository(HistoryBalancePlayersMysqlHL).findOne({
+        where: {
+          players_id: player.id_players,
+        },
+        order: {
+          datetime_balance_players: "DESC",
+        }
+      });
+      return historyBalance.current_balance_players;
+    } catch (error) {
+      this.loggerHelperService.debugLog(
+        'Hit API get balance [balance client HL not found]',
+        {
+          error
+        },
+      );
+      return {
+        status: "0",
+        data: {},
+        message: "882",
+      }
+    }
   }
 
   // ==== function return promise
@@ -130,5 +181,20 @@ export class UserService {
     } catch (error) {
       throw error;
     }
+  }
+
+  // get compare password
+  async passCompare(passwordHash: string, passwordOrigin: string) {
+    const compare = await bcrypt.compare(passwordOrigin,passwordHash);
+    return compare;
+  }
+
+  // get encrypt password
+  async passHashing(password: string) {
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(password,salt);
+    return {
+      hash
+    };
   }
 }

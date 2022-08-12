@@ -47,13 +47,6 @@ export class ClientService {
       throw new UnauthorizedException('Please provide the correct ip format');
     }
 
-    // add to queue in order to record login history
-    await this.queue.add('login-history-job',{
-      ip: dto.ip,
-    },{
-      removeOnComplete: true,
-      delay: 3000,
-    });
     // decode request headers
     const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
 
@@ -161,6 +154,14 @@ export class ClientService {
         code: 0,
         url: hitProvider.loginUrl,
       }
+
+      // add to queue in order to record login history
+      await this.queue.add('login-history-job',{
+        ip: dto.ip,
+      },{
+        removeOnComplete: true,
+        delay: 3000,
+      });
     } else {
       // responseToUser = {
       //   status: true,
@@ -217,26 +218,8 @@ export class ClientService {
           // action save
           const userSaved = await this.usersRepository.save(newUser);
 
-          // create account FUN MODE
-          const newUserFun = await this.usersRepository.create({
-            userId: `F_${client.code}${userIdUpper}`,
-            userAgentId: `${agentId}F_${client.code}${userIdUpper}`,
-            hash,
-            username: dto.username,
-            client,
-            mode: 1,
-          });
-          const newWalletFun = await this.walletsRepository.create({
-            name: `${client.agent.currency.name}-${agentId}`,
-            balance: 100,
-          })
-          // this is make relation with cascade join
-          newUserFun.wallet = newWalletFun;
-          // action save
-          const userSavedFun = await this.usersRepository.save(newUserFun);
-
           let returnData;
-          if (userSaved && userSavedFun) {
+          if (userSaved) {
             // returnData = {
             //   status: true,
             //   msg: 'signed up successfully',
@@ -278,14 +261,6 @@ export class ClientService {
     } catch (error) {
       throw new UnauthorizedException('Please provide the correct ip format');
     }
-
-    // add to queue in order to record login history
-    await this.queue.add('login-history-job',{
-      ip: dto.ip,
-    },{
-      removeOnComplete: true,
-      delay: 3000,
-    });
     // decode request headers
     const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
 
@@ -393,6 +368,13 @@ export class ClientService {
         code: 0,
         url: hitProvider.loginUrl,
       }
+      // add to queue in order to record login history
+      await this.queue.add('login-history-job',{
+        ip: dto.ip,
+      },{
+        removeOnComplete: true,
+        delay: 3000,
+      });
     } else {
       // responseToUser = {
       //   status: true,
@@ -468,6 +450,79 @@ export class ClientService {
       // action save
       const userSaved = await this.usersRepository.save(newUser);
 
+      let returnData;
+      if (userSaved) {
+        // returnData = {
+        //   status: true,
+        //   msg: 'signed up successfully',
+        //   data: {
+        //     username: dto.username,
+        //     userid: userSaved.userId,
+        //     useridFun: userSavedFun.userId,
+        //   },
+        // }
+        returnData = {
+          code: 0,
+          msg: 'signed up successfully'
+        }
+      } else {
+        // returnData = {
+        //   status: false,
+        //   msg: 'signed up failed',
+        // }
+        throw new HttpException('signed up failed',HttpStatus.BAD_REQUEST)
+      }
+      return returnData;
+    } catch (error) {
+      if (error.code === '23505') throw new HttpException('Credentials taken, User id has been used',HttpStatus.BAD_REQUEST)
+      // handle error
+      throw error;
+    }
+  }
+
+  async registerFunMode(dto: ClientSignUpDto, headers) {
+    // check game id
+    await this.checkGameId(dto.game_id);
+    // Generate the password hash
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(dto.password, salt);
+    // save the new user in the DB
+    try {
+      const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
+
+      if(!dataClientDecode.status) throw new UnauthorizedException(`Please provide the correct Client token`);
+
+      // find the client
+      const client = await this.clientsRepository.findOne({
+        relations: {
+          agent: {
+            currency: true,
+          }
+        },
+        where: {
+          clientKey: dataClientDecode.headerAuth,
+          code: dataClientDecode.objFromToken.sub,
+          username: dataClientDecode.objFromToken.username,
+          agent: {
+            agentId: dataClientDecode.objFromToken.agentId,
+            apiKey: dataClientDecode.objFromToken.agentApiKey,
+          }
+        }
+      });
+
+      // if token isn't suitable with client account throw forbidden
+      if(!client) throw new UnauthorizedException(`Token isn't valid`)
+
+      // if currency code isn't suuitable with dto currency, throw forbidden
+      if(client.agent.currency.code != dto.currency) throw new UnauthorizedException(`Currency isn't suitable with agent currency`)
+
+      const agentId: string = client.agent.agentId
+      const userIdUpper = dto.username.toUpperCase();
+      // check user id is exist
+      const userExist = await this.checkUserExist(dto.username,userIdUpper);
+      if(userExist) throw new UnauthorizedException('Credentials already exist');
+      // const userIdUpper = dto.userid
+
       // create account FUN MODE
       const newUserFun = await this.usersRepository.create({
         userId: `F_${client.code}${userIdUpper}`,
@@ -487,7 +542,7 @@ export class ClientService {
       const userSavedFun = await this.usersRepository.save(newUserFun);
 
       let returnData;
-      if (userSaved && userSavedFun) {
+      if (userSavedFun) {
         // returnData = {
         //   status: true,
         //   msg: 'signed up successfully',
@@ -575,27 +630,8 @@ export class ClientService {
         // action save
         const userSaved = await this.usersRepository.save(newUser);
 
-        // create account FUN MODE
-        const newUserFun = await this.usersRepository.create({
-          userId: `F_${client.code}${userIdUpper}`,
-          userAgentId: `${agentId}F_${client.code}${userIdUpper}`,
-          hash,
-          username: dto.username,
-          client,
-          mode: 1,
-          playerToken: dto.token,
-        });
-        const newWalletFun = await this.walletsRepository.create({
-          name: `${client.agent.currency.name}-${agentId}`,
-          balance: 100,
-        })
-        // this is make relation with cascade join
-        newUserFun.wallet = newWalletFun;
-        // action save
-        const userSavedFun = await this.usersRepository.save(newUserFun);
-
         let returnData;
-        if (userSaved && userSavedFun) {
+        if (userSaved) {
           // returnData = {
           //   status: true,
           //   msg: 'signed up successfully',
@@ -636,14 +672,6 @@ export class ClientService {
     } catch (error) {
       throw new UnauthorizedException('Please provide the correct ip format');
     }
-
-    // add to queue in order to record login history
-    await this.queue.add('login-history-job',{
-      ip: dto.ip,
-    },{
-      removeOnComplete: true,
-      delay: 3000,
-    });
     // decode request headers
     const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
 
@@ -749,6 +777,13 @@ export class ClientService {
         code: 0,
         url: hitProvider.loginUrl,
       }
+      // add to queue in order to record login history
+      await this.queue.add('login-history-job',{
+        ip: dto.ip,
+      },{
+        removeOnComplete: true,
+        delay: 3000,
+      });
     } else {
       // responseToUser = {
       //   status: true,

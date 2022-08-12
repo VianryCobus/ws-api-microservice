@@ -27,6 +27,13 @@ export class ClientController {
     return this.clientService.register(dto,req.headers);
   }
 
+  @Post('registerFunMode')
+  @HttpCode(200)
+  @UseFilters(ClientExceptionFilter)
+  registerFunMode(@Body(new ValidationPipe()) dto: ClientSignUpDto, @Request() req) {
+    return this.clientService.registerFunMode(dto,req.headers);
+  }
+
   @Post('loginapp')
   @HttpCode(200)
   @UseFilters(ClientExceptionFilter)

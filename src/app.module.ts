@@ -6,11 +6,11 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 // import { PrismaModule } from './prisma/prisma.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import ormConfig from 'ormconfig';
 import { TransactionModule } from './transaction/transaction.module';
 import { EncryptModule, GenerateUserIdModule, HitProviderModule, JwtHelperModule, LoggerHelperModule } from './utils/helper';
 import { LoggerMiddleware } from './utils/middleware';
 import { ClientModule } from './client/client.module';
+import { mysqlHlConfig, ormConfig } from 'ormconfig';
 
 @Module({
   imports: [
@@ -18,6 +18,7 @@ import { ClientModule } from './client/client.module';
       isGlobal: true,
     }),
     TypeOrmModule.forRoot(ormConfig),
+    TypeOrmModule.forRoot(mysqlHlConfig),
     // TypeOrmModule.forRoot({
     //   type: 'postgres',
     //   host: process.env.POSTGRES_HOST,
