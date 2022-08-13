@@ -16,6 +16,7 @@ export class UserService {
     // === @InjectConnection has deprecated
     // @InjectConnection('mysqlHlConnection') private dataSourceMysqlHl: DataSource,
     @InjectDataSource('mysqlHlConnection') private dataSourceMysqlHl: DataSource,
+    @InjectDataSource() private dataSourcePostgresql: DataSource,
 
     @InjectRepository(Currency) private currenciesRepository: Repository<Currency>,
     @InjectRepository(User) private usersRepository: Repository<User>,
@@ -46,7 +47,7 @@ export class UserService {
     // variable declaration
     let balancePlayer: Number = balance.wallet.balance;
 
-    if(balance.client.code == "HPL") {
+    if(balance.client.code == "HPL" && balance.mode === 0) {
       const balanceHl = await this.getbalancehl(balance.username);
       return {
         status: "1",
@@ -159,16 +160,46 @@ export class UserService {
     }
   }
 
-  // get user by username and userid (username upper)
+  // get user REAL MODE by username and userid (username upper)
   getOneUserByUsernameAndUserId(
     username: string,
-    userId: string
+    userId: string,
   ): Promise<User> {
     try {
       const user = this.usersRepository.findOne({
         where: [
-          {username},
-          {userId}
+          {username, mode: 0},
+          {userId, mode: 0}
+        ],
+        relations: {
+          wallet: true,
+          client: {
+            agent: true,
+          }
+        }
+      });
+      // const user = this.dataSourcePostgresql.getRepository(User)
+      //   .createQueryBuilder("user")
+      //   .where("user.username = :username", { username })
+      //   .orWhere("user.userId = :userId", { userId })
+      //   .andWhere("user.mode = :mode", { mode: funMode })
+      //   .getOne();
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // get user FUN MODE by username and userid (username upper)
+  getOneUserByUsernameAndUserIdFunMode(
+    username: string,
+    userId: string,
+  ): Promise<User> {
+    try {
+      const user = this.usersRepository.findOne({
+        where: [
+          {username, mode: 1},
+          {userId, mode: 1}
         ],
         relations: {
           wallet: true,

@@ -1,10 +1,10 @@
 import { ForbiddenException, HttpException, HttpStatus, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { Agent, Client, Config, Currency, HistoryLogin, User, Wallet } from "src/models";
 import { UserService } from "src/user/user.service";
 import * as bcrypt from 'bcrypt';
 import { EncryptService, GenerateUserIdService, HitProviderService, JwtHelperService } from "src/utils/helper";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { ClientAuthDto, ClientLoginAppDto, ClientSignUpDto } from "./dto";
 import { InjectQueue } from "@nestjs/bull";
 import { Queue } from "bull";
@@ -13,6 +13,7 @@ import { Queue } from "bull";
 export class ClientService {
   private geoip = require('geoip-lite');
   constructor(
+    @InjectDataSource() private dataSource: DataSource,
     @InjectRepository(Currency) private currenciesRepository: Repository<Currency>,
     @InjectRepository(User) private usersRepository: Repository<User>,
     @InjectRepository(Wallet) private walletsRepository: Repository<Wallet>,
@@ -28,6 +29,7 @@ export class ClientService {
     private jwtHelperService: JwtHelperService,
   ){}
 
+  // Old Login function
   async login(dto: ClientAuthDto, headers) {
     // check game id
     await this.checkGameId(dto.game_id);
@@ -76,19 +78,10 @@ export class ClientService {
     if (!client) throw new UnauthorizedException(`Token or username isn't exist`);
     
     // find the user by userId and clientToken
-    const user = await this.usersRepository.findOne({
-      relations: {
-        client: {
-          agent: true,
-        }
-      },
-      where: {
-        username: dto.username,
-        mode: dto.fun_mode,
-      }
-    });
-    // if user doesn't exist throw exception
-    if (!user) throw new UnauthorizedException('Credentials incorrect, please check the user id or mode options');
+    const user = await this.decideRealOrFunUser(
+      dto.username,
+      dto.fun_mode,
+    );
     // compare password
     const pwMatches = await bcrypt.compare(dto.password,user.hash)
     // if password incorrect throw exception
@@ -290,19 +283,10 @@ export class ClientService {
     if (!client) throw new UnauthorizedException(`Token or username isn't exist`);
     
     // find the user by userId and clientToken
-    const user = await this.usersRepository.findOne({
-      relations: {
-        client: {
-          agent: true,
-        }
-      },
-      where: {
-        username: dto.username,
-        mode: dto.fun_mode,
-      }
-    });
-    // if user doesn't exist throw exception
-    if (!user) throw new UnauthorizedException('Credentials incorrect, please check the user id or mode options');
+    const user = await this.decideRealOrFunUser(
+      dto.username,
+      dto.fun_mode,
+    );
     // compare password
     const pwMatches = await bcrypt.compare(dto.password,user.hash)
     // if password incorrect throw exception
@@ -519,7 +503,7 @@ export class ClientService {
       const agentId: string = client.agent.agentId
       const userIdUpper = dto.username.toUpperCase();
       // check user id is exist
-      const userExist = await this.checkUserExist(dto.username,userIdUpper);
+      const userExist = await this.checkUserFunModeExist(dto.username,userIdUpper);
       if(userExist) throw new UnauthorizedException('Credentials already exist');
       // const userIdUpper = dto.userid
 
@@ -576,83 +560,86 @@ export class ClientService {
     await this.checkGameId(dto.game_id);
     // check user id is exist
     const userIdUpper = dto.username.toUpperCase();
-    const userExist = await this.checkUserExist(dto.username,userIdUpper);
-    // REGISTER PLAYER
-    if(!userExist) {
-      // Generate the password hash
-      const salt = await bcrypt.genSalt();
-      const hash = await bcrypt.hash('ws-sport', salt);
-      // save the new user in the DB
-      try {
-        const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
+    if(dto.fun_mode === 0){
+      const userExist = await this.checkUserExist(dto.username,userIdUpper);
+      console.log(userExist);
+      // REGISTER PLAYER
+      if(!userExist) {
+        // Generate the password hash
+        const salt = await bcrypt.genSalt();
+        const hash = await bcrypt.hash('ws-sport', salt);
+        // save the new user in the DB
+        try {
+          const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
 
-        if(!dataClientDecode.status) throw new UnauthorizedException(`Please provide the correct Client token`);
+          if(!dataClientDecode.status) throw new UnauthorizedException(`Please provide the correct Client token`);
 
-        // find the client
-        const client = await this.clientsRepository.findOne({
-          relations: {
-            agent: {
-              currency: true,
+          // find the client
+          const client = await this.clientsRepository.findOne({
+            relations: {
+              agent: {
+                currency: true,
+              }
+            },
+            where: {
+              clientKey: dataClientDecode.headerAuth,
+              code: dataClientDecode.objFromToken.sub,
+              username: dataClientDecode.objFromToken.username,
+              agent: {
+                agentId: dataClientDecode.objFromToken.agentId,
+                apiKey: dataClientDecode.objFromToken.agentApiKey,
+              }
             }
-          },
-          where: {
-            clientKey: dataClientDecode.headerAuth,
-            code: dataClientDecode.objFromToken.sub,
-            username: dataClientDecode.objFromToken.username,
-            agent: {
-              agentId: dataClientDecode.objFromToken.agentId,
-              apiKey: dataClientDecode.objFromToken.agentApiKey,
-            }
+          });
+
+          // if token isn't suitable with client account throw forbidden
+          if(!client) throw new UnauthorizedException(`Token isn't valid`)
+
+          const agentId: string = client.agent.agentId
+          const userIdUpper = dto.username.toUpperCase();
+
+          // create account REAL MODE
+          const newUser = await this.usersRepository.create({
+            userId: `${client.code}${userIdUpper}`,
+            userAgentId: `${agentId}${client.code}${userIdUpper}`,
+            hash,
+            username: dto.username,
+            client,
+            playerToken: dto.token,
+          });
+          const newWallet = await this.walletsRepository.create({
+            name: `${client.agent.currency.name}-${agentId}`,
+            balance: 0,
+          })
+          // this is make relation with cascade join
+          newUser.wallet = newWallet;
+          // action save
+          const userSaved = await this.usersRepository.save(newUser);
+
+          let returnData;
+          if (userSaved) {
+            // returnData = {
+            //   status: true,
+            //   msg: 'signed up successfully',
+            //   data: {
+            //     username: dto.username,
+            //     userid: userSaved.userId,
+            //     useridFun: userSavedFun.userId,
+            //   },
+            // }
+          } else {
+            // returnData = {
+            //   status: false,
+            //   msg: 'signed up failed',
+            // }
+            throw new HttpException('signed up failed',HttpStatus.BAD_REQUEST)
           }
-        });
-
-        // if token isn't suitable with client account throw forbidden
-        if(!client) throw new UnauthorizedException(`Token isn't valid`)
-
-        const agentId: string = client.agent.agentId
-        const userIdUpper = dto.username.toUpperCase();
-
-        // create account REAL MODE
-        const newUser = await this.usersRepository.create({
-          userId: `${client.code}${userIdUpper}`,
-          userAgentId: `${agentId}${client.code}${userIdUpper}`,
-          hash,
-          username: dto.username,
-          client,
-          playerToken: dto.token,
-        });
-        const newWallet = await this.walletsRepository.create({
-          name: `${client.agent.currency.name}-${agentId}`,
-          balance: 0,
-        })
-        // this is make relation with cascade join
-        newUser.wallet = newWallet;
-        // action save
-        const userSaved = await this.usersRepository.save(newUser);
-
-        let returnData;
-        if (userSaved) {
-          // returnData = {
-          //   status: true,
-          //   msg: 'signed up successfully',
-          //   data: {
-          //     username: dto.username,
-          //     userid: userSaved.userId,
-          //     useridFun: userSavedFun.userId,
-          //   },
-          // }
-        } else {
-          // returnData = {
-          //   status: false,
-          //   msg: 'signed up failed',
-          // }
-          throw new HttpException('signed up failed',HttpStatus.BAD_REQUEST)
+          // return returnData;
+        } catch (error) {
+          if (error.code === '23505') throw new HttpException('Credentials taken, User id has been used',HttpStatus.BAD_REQUEST)
+          // handle error
+          throw error;
         }
-        // return returnData;
-      } catch (error) {
-        if (error.code === '23505') throw new HttpException('Credentials taken, User id has been used',HttpStatus.BAD_REQUEST)
-        // handle error
-        throw error;
       }
     }
 
@@ -701,21 +688,15 @@ export class ClientService {
     if (!client) throw new UnauthorizedException(`Token or username isn't exist`);
     
     // find the user by userId and clientToken
-    const user = await this.usersRepository.findOne({
-      relations: {
-        client: {
-          agent: true,
-        }
-      },
-      where: {
-        username: dto.username,
-        mode: dto.fun_mode,
-      }
-    });
-    // if user doesn't exist throw exception
-    if (!user) throw new UnauthorizedException('Credentials incorrect, please check the user id or mode options');
+    const user = await this.decideRealOrFunUser(
+      dto.username,
+      dto.fun_mode,
+    );
     // if password incorrect throw exception
-    if (dto.token != user.playerToken) throw new UnauthorizedException('Credentials incorrect')
+    // this condition only running in REAL MODE
+    if(dto.fun_mode === 0){
+      if (dto.token != user.playerToken) throw new UnauthorizedException('Credentials incorrect')
+    }
     // hit api provider
     const params = {
       apiKey: user.client.agent.apiKey,
@@ -818,6 +799,12 @@ export class ClientService {
     if (userExist) return true;
     return false;
   }
+  
+  async checkUserFunModeExist(username: string, userIdUpper: string) {
+    const userExist = await this.userService.getOneUserByUsernameAndUserIdFunMode(username,userIdUpper);
+    if (userExist) return true;
+    return false;
+  }
 
   async findTheClient(token: string) {
     const dataClientDecode: any = await this.jwtHelperService.decodeToken(token);
@@ -841,5 +828,47 @@ export class ClientService {
       }
     });
     return client;
+  }
+
+  async decideRealOrFunUser(
+    username: string, 
+    funMode: number,
+  ) {
+    let user: any;
+    if(funMode === 0) {
+      user = await this.usersRepository.findOne({
+        relations: {
+          client: {
+            agent: true,
+          }
+        },
+        where: {
+          username: username,
+          mode: funMode,
+        }
+      });
+      // if user doesn't exist throw exception
+      if (!user) throw new UnauthorizedException('Credentials incorrect, please check the user id or mode options');
+    } else {
+      // user = await this.dataSource.getRepository(User)
+      //   .createQueryBuilder("user")
+      //   .innerJoinAndSelect("user.client","users")
+      //   // .innerJoinAndSelect("client","clientx","clientx.agent = clients")
+      //   .where("user.mode = :mode", { mode: funMode })
+      //   .orderBy("RANDOM()")
+      //   .getOne();
+      user = await this.usersRepository.findOne({
+        relations: {
+          client: {
+            agent: true,
+          }
+        },
+        where: {
+          mode: funMode,
+        },
+      });
+      // console.log(user);
+    }
+    return user;
   }
 }
