@@ -182,58 +182,60 @@ export class ClientService {
     if(findClient.autoRegis) {
       // check user id is exist
       const userIdUpper = dto.username.toUpperCase();
-      const userExist = await this.checkUserExist(dto.username,userIdUpper);
-      // REGISTER PLAYER
-      if(!userExist) {
-        // Generate the password hash
-        const salt = await bcrypt.genSalt();
-        const hash = await bcrypt.hash(dto.password, salt);
-        // save the new user in the DB
-        try {
-          const client = await this.findTheClient(headers.authorization);
-          const agentId: string = client.agent.agentId
-          const userIdUpper = dto.username.toUpperCase();
+      if(dto.fun_mode === 0){
+        const userExist = await this.checkUserExist(dto.username,userIdUpper);
+        // REGISTER PLAYER
+        if(!userExist) {
+          // Generate the password hash
+          const salt = await bcrypt.genSalt();
+          const hash = await bcrypt.hash(dto.password, salt);
+          // save the new user in the DB
+          try {
+            const client = await this.findTheClient(headers.authorization);
+            const agentId: string = client.agent.agentId
+            const userIdUpper = dto.username.toUpperCase();
 
-          // create account REAL MODE
-          const newUser = await this.usersRepository.create({
-            userId: `${client.code}${userIdUpper}`,
-            userAgentId: `${agentId}${client.code}${userIdUpper}`,
-            hash,
-            username: dto.username,
-            client,
-          });
-          const newWallet = await this.walletsRepository.create({
-            name: `${client.agent.currency.name}-${agentId}`,
-            balance: 0,
-          })
-          // this is make relation with cascade join
-          newUser.wallet = newWallet;
-          // action save
-          const userSaved = await this.usersRepository.save(newUser);
+            // create account REAL MODE
+            const newUser = await this.usersRepository.create({
+              userId: `${client.code}${userIdUpper}`,
+              userAgentId: `${agentId}${client.code}${userIdUpper}`,
+              hash,
+              username: dto.username,
+              client,
+            });
+            const newWallet = await this.walletsRepository.create({
+              name: `${client.agent.currency.name}-${agentId}`,
+              balance: 0,
+            })
+            // this is make relation with cascade join
+            newUser.wallet = newWallet;
+            // action save
+            const userSaved = await this.usersRepository.save(newUser);
 
-          let returnData;
-          if (userSaved) {
-            // returnData = {
-            //   status: true,
-            //   msg: 'signed up successfully',
-            //   data: {
-            //     username: dto.username,
-            //     userid: userSaved.userId,
-            //     useridFun: userSavedFun.userId,
-            //   },
-            // }
-          } else {
-            // returnData = {
-            //   status: false,
-            //   msg: 'signed up failed',
-            // }
-            throw new HttpException('signed up failed',HttpStatus.BAD_REQUEST)
+            let returnData;
+            if (userSaved) {
+              // returnData = {
+              //   status: true,
+              //   msg: 'signed up successfully',
+              //   data: {
+              //     username: dto.username,
+              //     userid: userSaved.userId,
+              //     useridFun: userSavedFun.userId,
+              //   },
+              // }
+            } else {
+              // returnData = {
+              //   status: false,
+              //   msg: 'signed up failed',
+              // }
+              throw new HttpException('signed up failed',HttpStatus.BAD_REQUEST)
+            }
+            // return returnData;
+          } catch (error) {
+            if (error.code === '23505') throw new HttpException('Credentials taken, User id has been used',HttpStatus.BAD_REQUEST)
+            // handle error
+            throw error;
           }
-          // return returnData;
-        } catch (error) {
-          if (error.code === '23505') throw new HttpException('Credentials taken, User id has been used',HttpStatus.BAD_REQUEST)
-          // handle error
-          throw error;
         }
       }
     }
@@ -288,9 +290,12 @@ export class ClientService {
       dto.fun_mode,
     );
     // compare password
-    const pwMatches = await bcrypt.compare(dto.password,user.hash)
-    // if password incorrect throw exception
-    if (!pwMatches) throw new UnauthorizedException('Credentials incorrect')
+    // this condition only running in REAL MODE
+    if(dto.fun_mode === 0){
+      const pwMatches = await bcrypt.compare(dto.password,user.hash)
+      // if password incorrect throw exception
+      if (!pwMatches) throw new UnauthorizedException('Credentials incorrect')
+    }
     // hit api provider
     const params = {
       apiKey: user.client.agent.apiKey,
@@ -692,7 +697,7 @@ export class ClientService {
       dto.username,
       dto.fun_mode,
     );
-    // if password incorrect throw exception
+    // if player Token incorrect throw exception
     // this condition only running in REAL MODE
     if(dto.fun_mode === 0){
       if (dto.token != user.playerToken) throw new UnauthorizedException('Credentials incorrect')
@@ -850,24 +855,24 @@ export class ClientService {
       // if user doesn't exist throw exception
       if (!user) throw new UnauthorizedException('Credentials incorrect, please check the user id or mode options');
     } else {
-      // user = await this.dataSource.getRepository(User)
-      //   .createQueryBuilder("user")
-      //   .innerJoinAndSelect("user.client","users")
-      //   // .innerJoinAndSelect("client","clientx","clientx.agent = clients")
-      //   .where("user.mode = :mode", { mode: funMode })
-      //   .orderBy("RANDOM()")
-      //   .getOne();
-      user = await this.usersRepository.findOne({
-        relations: {
-          client: {
-            agent: true,
+      user = await this.dataSource
+        .createQueryBuilder(User,"user")
+        .innerJoinAndSelect(Client,"client","user.clientId = client.id")
+        .innerJoinAndSelect(Agent,"agent","client.agentId = agent.id")
+        .where("user.mode = :mode", { mode: funMode })
+        .orderBy("RANDOM()")
+        .getRawOne();
+      // if user fun mode doesn't exist
+      if (!user) throw new UnauthorizedException(`Fun Mode user isn't exist`)
+      user = {
+        userId: user.user_userId,
+        client : {
+          agent : {
+            apiKey: user.agent_apiKey,
+            agentId: user.agent_agentId,
           }
-        },
-        where: {
-          mode: funMode,
-        },
-      });
-      // console.log(user);
+        }
+      }
     }
     return user;
   }
