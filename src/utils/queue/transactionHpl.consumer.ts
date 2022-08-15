@@ -1,7 +1,8 @@
 import { Process, Processor } from "@nestjs/bull";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { Job } from "bull";
-import { HistoryBalancePlayersMysqlLocal } from "src/models/models_mysqlLocal";
+import { HistoryBalancePlayersMysqlHL } from "src/models/models_hl";
+// import { HistoryBalancePlayersMysqlLocal } from "src/models/models_mysqlLocal";
 import { DataSource } from "typeorm";
 import { LoggerHelperService } from "../helper";
 
@@ -20,7 +21,7 @@ export class TransactionHappyLuckConsumer {
 
     const newHplTransJob = await this.datasourceMysqlHl.createQueryBuilder()
       .insert()
-      .into(HistoryBalancePlayersMysqlLocal)
+      .into(HistoryBalancePlayersMysqlHL)
       .values({
         players_id: val.players_id,
         transactions_types_id: val.transactions_types_id,
