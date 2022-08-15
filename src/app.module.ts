@@ -19,6 +19,7 @@ import { mysqlHlConfig, ormConfig } from 'ormconfig';
     }),
     TypeOrmModule.forRoot(ormConfig),
     TypeOrmModule.forRoot(mysqlHlConfig),
+    // TypeOrmModule.forRoot(mysqlCobsConfig),
     // TypeOrmModule.forRoot({
     //   type: 'postgres',
     //   host: process.env.POSTGRES_HOST,

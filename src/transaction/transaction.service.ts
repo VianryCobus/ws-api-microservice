@@ -1,17 +1,18 @@
 import { InjectQueue } from '@nestjs/bull';
 import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { LoggerHelperService } from 'src/utils/helper';
 import { Agent, Currency, Transaction, User, Wallet } from 'src/models';
 import { UserService } from 'src/user/user.service';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { BetResultDto, CancelBetDto, PlaceBetDto, RollbackBetResultDto } from './dto';
 
 @Injectable()
 export class TransactionService {
   private logger: Logger;
   constructor(
+    @InjectDataSource('mysqlHlConnection') dataSourceMysqlHl: DataSource,
     @InjectRepository(Currency) private currenciesRepository: Repository<Currency>,
     @InjectRepository(User) private usersRepository: Repository<User>,
     @InjectRepository(Wallet) private walletsRepository: Repository<Wallet>,
@@ -47,8 +48,18 @@ export class TransactionService {
           message: "882",
         }
       }
-      // get balance from wallet and count that
-      const beforeBalance = Number(user.wallet.balance);
+      let beforeBalance: number;
+      let balanceClientHl: any;
+      if (user.client.code === "HPL"){
+        // if user are client Happy Luck
+        balanceClientHl = await this.userService.getbalancehl(user.username);
+        // console.log(balanceClientHl);
+        beforeBalance = parseFloat(Number(balanceClientHl.balance).toFixed(4));
+      } else {
+        // get balance from wallet and count that
+        beforeBalance = Number(user.wallet.balance);
+      }
+
       const payout = Number(dto.payout);
       // check balance on wallet, if insufficient, return status 0 and log that
       const checkBalance = await this.checkBalance(beforeBalance,payout);
@@ -127,7 +138,7 @@ export class TransactionService {
         }
       }
 
-      // // add to queue in order to record balance history
+      // add to queue in order to record balance history
       await this.queue.add('balance-history-job',{
         walletId: updatedWallet.id,
         balance: checkBalance.afterBalance,
@@ -146,6 +157,22 @@ export class TransactionService {
         removeOnComplete: true,
         delay: 5000,
       });
+
+      if(user.client.code === "HPL") {
+        // add to queue in order to insert data to Happy Luck client database
+        await this.queue.add('hpl-trans-job', {
+          ticketBetId: dto.id,
+          transId: dto.transId,
+          amount_balance_players: dto.payout,
+          current_balance_players: checkBalance.afterBalance,
+          players_id: balanceClientHl.players_id,
+          transactions_types_id: 3,
+          aggregator_id: 29,
+        },{
+          removeOnComplete: true,
+          delay: 2000
+        });
+      }
 
       this.logger.debug({
         message: 'Hit API place bet [Success Place Bet]',
@@ -237,8 +264,16 @@ export class TransactionService {
               message: "550"
             }
           } else {
-            // get balance from wallet and count that
-            const beforeBalance = Number(user.wallet.balance);
+            let beforeBalance: number;
+            let balanceClientHl: any;
+            if(user.client.code === "HPL"){
+              // if user are client Happy Luck
+              balanceClientHl = await this.userService.getbalancehl(user.username);
+              beforeBalance = parseFloat(Number(balanceClientHl.balance).toFixed(4));
+            } else {
+              // get balance from wallet and count that
+              beforeBalance = Number(user.wallet.balance);
+            }
             const payout = Number(e.payout);
             // check balance on wallet, if insufficient, return status 0 and log that
             const checkBalance = await this.checkBalance(beforeBalance,payout);
@@ -336,6 +371,24 @@ export class TransactionService {
                 removeOnComplete: true,
                 delay: 5000,
               });
+
+              // if user from client Happy Luck
+              if(user.client.code === "HPL") {
+                // add to queue in order to insert data to Happy Luck client database
+                await this.queue.add('hpl-trans-job', {
+                  ticketBetId: e.id,
+                  transId: e.transId,
+                  amount_balance_players: e.payout,
+                  current_balance_players: checkBalance.afterBalance,
+                  players_id: balanceClientHl.players_id,
+                  transactions_types_id: 4,
+                  aggregator_id: 29,
+                },{
+                  removeOnComplete: true,
+                  delay: 2000
+                });
+              }
+
             }
           }
         }
@@ -349,7 +402,6 @@ export class TransactionService {
         message: "",
       }
     } catch(error) {
-      console.log(error);
       // if (error.code === '23505') {
       //   await this.loggerHelperService.debugLog(
       //     `Hit API bet result [Duplicate Trans Id]`,
@@ -413,11 +465,19 @@ export class TransactionService {
               message: "550"
             }
           } else {
-            // get balance from wallet and count that
-            const beforeBalance = Number(user.wallet.balance);
+            let beforeBalance: number;
+            let balanceClientHl: any;
+            if(user.client.code === "HPL"){
+              // if user are client Happy Luck
+              balanceClientHl = await this.userService.getbalancehl(user.username);
+              beforeBalance = parseFloat(Number(balanceClientHl.balance).toFixed(4));
+            } else {
+              // get balance from wallet and count that
+              beforeBalance = Number(user.wallet.balance);
+            }
             const payout = Number(e.payout);
             // check balance on wallet, if insufficient, return status 0 and log that
-            const checkBalance = await this.checkBalance(beforeBalance, payout);
+            const checkBalance = await this.checkBalance(Number(balanceClientHl.balance), payout);
             if (!checkBalance.status) {
               await this.loggerHelperService.debugLog(
                 `Hit API rollback bet result [Insufficient Balance when process transId: ${e.transId}]`,
@@ -501,6 +561,24 @@ export class TransactionService {
               },{
                 removeOnComplete: true,
               });
+
+              // if user client Happy Luck
+              if(user.client.code === "HPL") {
+                // add to queue in order to insert data to Happy Luck client database
+                await this.queue.add('hpl-trans-job',{
+                  ticketBetId: e.id,
+                  transId: e.transId,
+                  amount_balance_players: e.payout,
+                  current_balance_players: checkBalance.afterBalance,
+                  players_id: balanceClientHl.players_id,
+                  transactions_types_id: 5,
+                  aggregator_id: 29,
+                },{
+                  removeOnComplete: true,
+                  delay: 2000
+                })
+              }
+
             }
           }
         }
@@ -577,11 +655,19 @@ export class TransactionService {
               message: "550"
             }
           } else {
-            // get balance from wallet and count that
-            const beforeBalance = Number(user.wallet.balance);
+            let beforeBalance: number;
+            let balanceClientHl: any;
+            if(user.client.code === "HPL"){
+              // if user are client Happy Luck
+              balanceClientHl = await this.userService.getbalancehl(user.username);
+              beforeBalance = parseFloat(Number(balanceClientHl.balance).toFixed(4));
+            } else {
+              // get balance from wallet and count that
+              beforeBalance = Number(user.wallet.balance);
+            }
             const payout = Number(e.payout);
             // check balance on wallet, if insufficient, return status 0 and log that
-            const checkBalance = await this.checkBalance(beforeBalance, payout);
+            const checkBalance = await this.checkBalance(Number(balanceClientHl.balance), payout);
             if(!checkBalance.status) {
               await this.loggerHelperService.debugLog(
                 `Hit API cancel bet [Insufficient Balance when process transId: ${e.transId}]`,
@@ -664,6 +750,24 @@ export class TransactionService {
               },{
                 removeOnComplete: true,
               });
+
+              // if user from client Happy Luck
+              if(user.client.code === "HPL") {
+                // add to queue in order to insert data to Happy Luck client database
+                await this.queue.add('hpl-trans-job',{
+                  ticketBetId: e.id,
+                  transId: e.transId,
+                  amount_balance_players: e.payout,
+                  current_balance_players: checkBalance.afterBalance,
+                  players_id: balanceClientHl.players_id,
+                  transactions_types_id: 5,
+                  aggregator_id: 29,
+                },{
+                  removeOnComplete: true,
+                  delay: 2000,
+                })
+              }
+
             }
           }
         // }

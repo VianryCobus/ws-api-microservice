@@ -52,7 +52,7 @@ export class UserService {
       return {
         status: "1",
         data: {
-          CurrentCredit: parseFloat(Number(balanceHl).toFixed(4)),
+          CurrentCredit: parseFloat(Number(balanceHl.balance).toFixed(4)),
         },
         message: null,
       };
@@ -102,7 +102,11 @@ export class UserService {
           datetime_balance_players: "DESC",
         }
       });
-      return historyBalance.current_balance_players;
+      return {
+        balance: historyBalance.current_balance_players,
+        players_id: player.id_players,
+        username_players: player.username_players,
+      };
     } catch (error) {
       this.loggerHelperService.debugLog(
         'Hit API get balance [balance client HL not found]',
