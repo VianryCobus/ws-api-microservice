@@ -171,6 +171,9 @@ export class ClientService {
   }
 
   async loginNew(dto: ClientAuthDto, headers) {
+    if(!dto.fun_mode){
+      dto.fun_mode = 0;
+    }
     // check game id
     await this.checkGameId(dto.game_id);
     // get client token
@@ -292,9 +295,9 @@ export class ClientService {
     // compare password
     // this condition only running in REAL MODE
     if(dto.fun_mode === 0){
-      const pwMatches = await bcrypt.compare(dto.password,user.hash)
-      // if password incorrect throw exception
-      if (!pwMatches) throw new UnauthorizedException('Credentials incorrect')
+      // const pwMatches = await bcrypt.compare(dto.password,user.hash)
+      // // if password incorrect throw exception
+      // if (!pwMatches) throw new UnauthorizedException('Credentials incorrect')
     }
     // hit api provider
     const params = {
@@ -854,7 +857,7 @@ export class ClientService {
       });
       // if user doesn't exist throw exception
       if (!user) throw new UnauthorizedException('Credentials incorrect, please check the user id or mode options');
-    } else {
+    } else if(funMode === 1) {
       user = await this.dataSource
         .createQueryBuilder(User,"user")
         .innerJoinAndSelect(Client,"client","user.clientId = client.id")
@@ -873,6 +876,9 @@ export class ClientService {
           }
         }
       }
+    } else {
+      // if fun mode doesn't exist
+      throw new UnauthorizedException(`Fun Mode isn't detect`)
     }
     return user;
   }
