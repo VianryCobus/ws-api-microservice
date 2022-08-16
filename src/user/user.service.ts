@@ -47,7 +47,7 @@ export class UserService {
     // variable declaration
     let balancePlayer: Number = balance.wallet.balance;
 
-    if(balance.client.code == "HPL" && balance.mode === 0) {
+    if(balance.client.username == "HL" && balance.mode === 0) {
       const balanceHl = await this.getbalancehl(balance.username);
       return {
         status: "1",

@@ -268,10 +268,9 @@ export class AuthService {
         relations: {
           agent: true,
         },
-        where: [
-          {username: dto.username},
-          {code: dto.code},
-        ]
+        where: {
+          code: dto.code
+        },
       });
       if (checkClient) throw new ForbiddenException(`Username or code is already exist`);
       // payload to encrypt jwt
