@@ -265,12 +265,27 @@ export class AuthService {
       // username, password, code
       // check if username is exist
       const checkClient = await this.clientsRepository.findOne({
+        relations: {
+          agent: true,
+        },
         where: [
-          { username: dto.username },
-          { code: dto.code }
+          { 
+            username: dto.username,
+            agent: {
+              agentId: dataClientDecode.objFromToken.sub,
+              apiKey: dataClientDecode.objFromToken.apiKey,
+            }
+          },
+          { 
+            code: dto.code,
+            agent: {
+              agentId: dataClientDecode.objFromToken.sub,
+              apiKey: dataClientDecode.objFromToken.apiKey,
+            }
+          }
         ]
       });
-      if (checkClient) throw new ForbiddenException('Username or code is already exist');
+      if (checkClient) throw new ForbiddenException(`Username or code is already exist on ${checkClient.agent.agentId}`);
       // payload to encrypt jwt
       const payload = {
         clientCode: dto.code,
