@@ -269,23 +269,11 @@ export class AuthService {
           agent: true,
         },
         where: [
-          { 
-            username: dto.username,
-            agent: {
-              agentId: dataClientDecode.objFromToken.sub,
-              apiKey: dataClientDecode.objFromToken.apiKey,
-            }
-          },
-          { 
-            code: dto.code,
-            agent: {
-              agentId: dataClientDecode.objFromToken.sub,
-              apiKey: dataClientDecode.objFromToken.apiKey,
-            }
-          }
+          {username: dto.username},
+          {code: dto.code},
         ]
       });
-      if (checkClient) throw new ForbiddenException(`Username or code is already exist on ${checkClient.agent.agentId}`);
+      if (checkClient) throw new ForbiddenException(`Username or code is already exist`);
       // payload to encrypt jwt
       const payload = {
         clientCode: dto.code,

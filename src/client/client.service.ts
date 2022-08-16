@@ -231,11 +231,15 @@ export class ClientService {
               //   status: false,
               //   msg: 'signed up failed',
               // }
-              throw new HttpException('signed up failed',HttpStatus.BAD_REQUEST)
+              // throw new HttpException('signed up failed',HttpStatus.BAD_REQUEST)
+              throw new UnauthorizedException('signed up failed')
             }
             // return returnData;
           } catch (error) {
-            if (error.code === '23505') throw new HttpException('Credentials taken, User id has been used',HttpStatus.BAD_REQUEST)
+            if (error.code === '23505') {
+              // throw new HttpException('Credentials taken, User id has been used',HttpStatus.BAD_REQUEST)
+              throw new UnauthorizedException('Credentials taken, User id has been used')
+            }
             // handle error
             throw error;
           }
