@@ -44,6 +44,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",
     "geoip-lite": "^1.4.6",
+    "hbs": "^4.2.0",
     "md5": "^2.3.0",
     "mysql2": "^2.3.3",
     "passport": "^0.6.0",

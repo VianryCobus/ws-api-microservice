@@ -3,21 +3,21 @@ import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { LoggerHelperService } from 'src/utils/helper';
-import { Agent, Currency, Transaction, User, Wallet } from 'src/models';
+import { Agent, Currency, DetailTransaction, Transaction, User, Wallet } from 'src/models';
 import { UserService } from 'src/user/user.service';
 import { DataSource, Repository } from 'typeorm';
-import { BetResultDto, CancelBetDto, PlaceBetDto, RollbackBetResultDto } from './dto';
+import { BetResultDto, CancelBetDto, GetDetailTrxViewDto, PlaceBetDto, RollbackBetResultDto } from './dto';
 
 @Injectable()
 export class TransactionService {
   private logger: Logger;
   constructor(
-    @InjectDataSource('mysqlHlConnection') dataSourceMysqlHl: DataSource,
     @InjectRepository(Currency) private currenciesRepository: Repository<Currency>,
     @InjectRepository(User) private usersRepository: Repository<User>,
     @InjectRepository(Wallet) private walletsRepository: Repository<Wallet>,
     @InjectRepository(Agent) private agentsRepository: Repository<Agent>,
     @InjectRepository(Transaction) private transactionsRepository: Repository<Transaction>,
+    @InjectRepository(DetailTransaction) private detailTransaction: Repository<DetailTransaction>,
     @InjectQueue('ws-queue') private queue:Queue,
     private userService: UserService,
     private loggerHelperService: LoggerHelperService,
@@ -50,7 +50,7 @@ export class TransactionService {
       }
       let beforeBalance: number;
       let balanceClientHl: any;
-      if (user.client.code === "HPL"){
+      if (user.client.username === "HL"){
         // if user are client Happy Luck
         balanceClientHl = await this.userService.getbalancehl(user.username);
         // console.log(balanceClientHl);
@@ -158,7 +158,7 @@ export class TransactionService {
         delay: 5000,
       });
 
-      if(user.client.code === "HPL") {
+      if(user.client.username === "HL") {
         // add to queue in order to insert data to Happy Luck client database
         await this.queue.add('hpl-trans-job', {
           ticketBetId: dto.id,
@@ -168,6 +168,7 @@ export class TransactionService {
           players_id: balanceClientHl.players_id,
           transactions_types_id: 3,
           aggregator_id: 29,
+          note_balance_players: 'bet',
         },{
           removeOnComplete: true,
           delay: 2000
@@ -197,6 +198,7 @@ export class TransactionService {
       // return success params
       return objSuccess;
     } catch(error) {
+      console.log(error);
       // if (error.code === '23505') {
       //   await this.loggerHelperService.debugLog(
       //     'Hit API place bet [Duplicate Trans Id]',
@@ -266,7 +268,7 @@ export class TransactionService {
           } else {
             let beforeBalance: number;
             let balanceClientHl: any;
-            if(user.client.code === "HPL"){
+            if(user.client.username === "HL"){
               // if user are client Happy Luck
               balanceClientHl = await this.userService.getbalancehl(user.username);
               beforeBalance = parseFloat(Number(balanceClientHl.balance).toFixed(4));
@@ -373,7 +375,7 @@ export class TransactionService {
               });
 
               // if user from client Happy Luck
-              if(user.client.code === "HPL") {
+              if(user.client.username === "HL") {
                 // add to queue in order to insert data to Happy Luck client database
                 await this.queue.add('hpl-trans-job', {
                   ticketBetId: e.id,
@@ -383,6 +385,7 @@ export class TransactionService {
                   players_id: balanceClientHl.players_id,
                   transactions_types_id: 4,
                   aggregator_id: 29,
+                  note_balance_players: 'betresult',
                 },{
                   removeOnComplete: true,
                   delay: 2000
@@ -402,6 +405,7 @@ export class TransactionService {
         message: "",
       }
     } catch(error) {
+      console.log(error);
       // if (error.code === '23505') {
       //   await this.loggerHelperService.debugLog(
       //     `Hit API bet result [Duplicate Trans Id]`,
@@ -467,7 +471,7 @@ export class TransactionService {
           } else {
             let beforeBalance: number;
             let balanceClientHl: any;
-            if(user.client.code === "HPL"){
+            if(user.client.username === "HL"){
               // if user are client Happy Luck
               balanceClientHl = await this.userService.getbalancehl(user.username);
               beforeBalance = parseFloat(Number(balanceClientHl.balance).toFixed(4));
@@ -477,7 +481,7 @@ export class TransactionService {
             }
             const payout = Number(e.payout);
             // check balance on wallet, if insufficient, return status 0 and log that
-            const checkBalance = await this.checkBalance(Number(balanceClientHl.balance), payout);
+            const checkBalance = await this.checkBalance(beforeBalance, payout);
             if (!checkBalance.status) {
               await this.loggerHelperService.debugLog(
                 `Hit API rollback bet result [Insufficient Balance when process transId: ${e.transId}]`,
@@ -563,7 +567,7 @@ export class TransactionService {
               });
 
               // if user client Happy Luck
-              if(user.client.code === "HPL") {
+              if(user.client.username === "HL") {
                 // add to queue in order to insert data to Happy Luck client database
                 await this.queue.add('hpl-trans-job',{
                   ticketBetId: e.id,
@@ -573,6 +577,7 @@ export class TransactionService {
                   players_id: balanceClientHl.players_id,
                   transactions_types_id: 5,
                   aggregator_id: 29,
+                  note_balance_players: 'rollbackbetresult',
                 },{
                   removeOnComplete: true,
                   delay: 2000
@@ -592,6 +597,7 @@ export class TransactionService {
         message: "",
       }
     } catch (error) {
+      console.log(error);
       // if (error.code === '23505') {
       //   await this.loggerHelperService.debugLog(
       //     `Hit API rollback bet result [Duplicate Trans Id]`,
@@ -657,7 +663,7 @@ export class TransactionService {
           } else {
             let beforeBalance: number;
             let balanceClientHl: any;
-            if(user.client.code === "HPL"){
+            if(user.client.username === "HL"){
               // if user are client Happy Luck
               balanceClientHl = await this.userService.getbalancehl(user.username);
               beforeBalance = parseFloat(Number(balanceClientHl.balance).toFixed(4));
@@ -667,7 +673,7 @@ export class TransactionService {
             }
             const payout = Number(e.payout);
             // check balance on wallet, if insufficient, return status 0 and log that
-            const checkBalance = await this.checkBalance(Number(balanceClientHl.balance), payout);
+            const checkBalance = await this.checkBalance(beforeBalance, payout);
             if(!checkBalance.status) {
               await this.loggerHelperService.debugLog(
                 `Hit API cancel bet [Insufficient Balance when process transId: ${e.transId}]`,
@@ -752,7 +758,7 @@ export class TransactionService {
               });
 
               // if user from client Happy Luck
-              if(user.client.code === "HPL") {
+              if(user.client.username === "HL") {
                 // add to queue in order to insert data to Happy Luck client database
                 await this.queue.add('hpl-trans-job',{
                   ticketBetId: e.id,
@@ -762,6 +768,7 @@ export class TransactionService {
                   players_id: balanceClientHl.players_id,
                   transactions_types_id: 5,
                   aggregator_id: 29,
+                  note_balance_players: 'cancelbet',
                 },{
                   removeOnComplete: true,
                   delay: 2000,
@@ -782,6 +789,7 @@ export class TransactionService {
         message: "",
       }
     } catch (error) {
+      console.log(error);
       // if (error.code === '23505') {
       //   await this.loggerHelperService.debugLog(
       //     `Hit API cancel bet [Duplicate Trans Id]`,
@@ -825,6 +833,11 @@ export class TransactionService {
   }
 
   private checkBalance(before: number,payout: number){
+    if(isNaN(before) || isNaN(payout)) {
+      return {
+        status: false,
+      }
+    }
     if(before + payout < 0) {
       return {
         status: false,
@@ -834,6 +847,19 @@ export class TransactionService {
       status: true,
       afterBalance: before + payout,
     }
+  }
+
+  // get detail transactions views
+  async getDetailTrxViews(dto: GetDetailTrxViewDto){
+    const detailTrx = await this.detailTransaction.find({
+      relations: {
+        transactions: true,
+      },
+      where: {
+        ticketBetId: dto.ticketBetId
+      }
+    })
+    return detailTrx;
   }
 
 }

@@ -1,7 +1,8 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, ParseArrayPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, ParseArrayPipe, Post, Query, Render, ValidationPipe } from '@nestjs/common';
+import { BalanceDto } from 'src/user/dto';
 import { validationSeamless, validationSeamlessArray } from 'src/utils/pipe';
 import { Http } from 'winston/lib/winston/transports';
-import { BetResultDto, CancelBetDto, PlaceBetDto, RollbackBetResultDto } from './dto';
+import { BetResultDto, CancelBetDto, GetDetailTrxViewDto, PlaceBetDto, RollbackBetResultDto } from './dto';
 import { TransactionService } from './transaction.service';
 
 @Controller('provider')
@@ -45,6 +46,16 @@ export class TransactionController {
     }
   )) dto: CancelBetDto[]) {
     return this.transactionService.cancelBet(dto);
+  }
+
+  @Get('getDetailTrx')
+  @HttpCode(200)
+  @Render('transactions/index')
+  async getDetailTrx(@Query(new ValidationPipe()) dto: GetDetailTrxViewDto){
+    const ticketBetId = await this.transactionService.getDetailTrxViews(dto);
+    return {
+      ticketBetId
+    }
   }
 
 }

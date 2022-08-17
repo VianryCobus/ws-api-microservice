@@ -246,11 +246,8 @@ export class AuthService {
     return responseToUser;
   }
 
-  async signupClient(dto: SignUpClientDto, headers) {
+  async signupClient(dto: SignUpClientDto, dataClientDecode: any) {
     try {
-      // decode request headers
-      const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
-
       if(!dataClientDecode.status) throw new ForbiddenException(`Please provide the correct agent token`);
       
       // find the agent

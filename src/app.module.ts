@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -10,7 +10,7 @@ import { TransactionModule } from './transaction/transaction.module';
 import { EncryptModule, GenerateUserIdModule, HitProviderModule, JwtHelperModule, LoggerHelperModule } from './utils/helper';
 import { LoggerMiddleware } from './utils/middleware';
 import { ClientModule } from './client/client.module';
-import { mysqlHlConfig, ormConfig } from 'ormconfig';
+import { mysqlCobsConfig, mysqlHlConfig, ormConfig } from 'ormconfig';
 
 @Module({
   imports: [
@@ -57,6 +57,9 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.
       apply(LoggerMiddleware)
+        .exclude(
+          { path: 'api/provider/bal', method: RequestMethod.GET },
+        )
         .forRoutes('provider','v1/client')
   }
 }

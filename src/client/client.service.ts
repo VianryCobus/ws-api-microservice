@@ -30,7 +30,7 @@ export class ClientService {
   ){}
 
   // Old Login function
-  async login(dto: ClientAuthDto, headers) {
+  async login(dto: ClientAuthDto, dataClientDecode: any) {
     // check game id
     await this.checkGameId(dto.game_id);
     // check ip location
@@ -48,9 +48,6 @@ export class ClientService {
     } catch (error) {
       throw new UnauthorizedException('Please provide the correct ip format');
     }
-
-    // decode request headers
-    const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
 
     if(!dataClientDecode.status) throw new UnauthorizedException(`Please provide the correct Client token`);
 
@@ -170,14 +167,14 @@ export class ClientService {
     return responseToUser;
   }
 
-  async loginNew(dto: ClientAuthDto, headers) {
+  async loginNew(dto: ClientAuthDto, dataClientDecode: any) {
     if(!dto.fun_mode){
       dto.fun_mode = 0;
     }
     // check game id
     await this.checkGameId(dto.game_id);
     // get client token
-    const findClient = await this.findTheClient(headers.authorization);
+    const findClient = await this.findTheClient(dataClientDecode);
 
     // if token isn't suitable with client account throw forbidden
     if(!findClient) throw new UnauthorizedException(`Token isn't valid`)
@@ -194,7 +191,7 @@ export class ClientService {
           const hash = await bcrypt.hash(dto.password, salt);
           // save the new user in the DB
           try {
-            const client = await this.findTheClient(headers.authorization);
+            const client = await this.findTheClient(dataClientDecode);
             const agentId: string = client.agent.agentId
             const userIdUpper = dto.username.toUpperCase();
 
@@ -263,8 +260,6 @@ export class ClientService {
     } catch (error) {
       throw new UnauthorizedException('Please provide the correct ip format');
     }
-    // decode request headers
-    const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
 
     if(!dataClientDecode.status) throw new UnauthorizedException(`Please provide the correct Client token`);
 
@@ -386,7 +381,7 @@ export class ClientService {
     return responseToUser;
   }
 
-  async register(dto: ClientSignUpDto, headers) {
+  async register(dto: ClientSignUpDto, dataClientDecode: any) {
     // check game id
     await this.checkGameId(dto.game_id);
     // Generate the password hash
@@ -394,8 +389,6 @@ export class ClientService {
     const hash = await bcrypt.hash(dto.password, salt);
     // save the new user in the DB
     try {
-      const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
-
       if(!dataClientDecode.status) throw new UnauthorizedException(`Please provide the correct Client token`);
 
       // find the client
@@ -476,7 +469,7 @@ export class ClientService {
     }
   }
 
-  async registerFunMode(dto: ClientSignUpDto, headers) {
+  async registerFunMode(dto: ClientSignUpDto, dataClientDecode: any) {
     // check game id
     await this.checkGameId(dto.game_id);
     // Generate the password hash
@@ -484,8 +477,6 @@ export class ClientService {
     const hash = await bcrypt.hash(dto.password, salt);
     // save the new user in the DB
     try {
-      const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
-
       if(!dataClientDecode.status) throw new UnauthorizedException(`Please provide the correct Client token`);
 
       // find the client
@@ -567,14 +558,13 @@ export class ClientService {
     }
   }
 
-  async loginApp(dto: ClientLoginAppDto, headers) {
+  async loginApp(dto: ClientLoginAppDto, dataClientDecode: any) {
     // check game id
     await this.checkGameId(dto.game_id);
     // check user id is exist
     const userIdUpper = dto.username.toUpperCase();
     if(dto.fun_mode === 0){
       const userExist = await this.checkUserExist(dto.username,userIdUpper);
-      console.log(userExist);
       // REGISTER PLAYER
       if(!userExist) {
         // Generate the password hash
@@ -582,8 +572,6 @@ export class ClientService {
         const hash = await bcrypt.hash('ws-sport', salt);
         // save the new user in the DB
         try {
-          const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
-
           if(!dataClientDecode.status) throw new UnauthorizedException(`Please provide the correct Client token`);
 
           // find the client
@@ -671,8 +659,6 @@ export class ClientService {
     } catch (error) {
       throw new UnauthorizedException('Please provide the correct ip format');
     }
-    // decode request headers
-    const dataClientDecode: any = await this.jwtHelperService.decodeToken(headers.authorization);
 
     if(!dataClientDecode.status) throw new UnauthorizedException(`Please provide the correct Client token`);
 
@@ -818,8 +804,7 @@ export class ClientService {
     return false;
   }
 
-  async findTheClient(token: string) {
-    const dataClientDecode: any = await this.jwtHelperService.decodeToken(token);
+  async findTheClient(dataClientDecode: any) {
     if(!dataClientDecode.status) throw new UnauthorizedException(`Please provide the correct Client token`);
 
     // find the client
