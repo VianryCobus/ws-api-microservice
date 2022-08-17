@@ -18,6 +18,10 @@ export class JwtHelperService {
         agentId: params.agentId,
         agentApiKey: params.agentApiKey,
       }
+    } else if(action == "trxDetailKey"){
+      payload = {
+        sub: params.tickeBetId,
+      }
     }
     const token = await this.jwt.signAsync(payload, {
       secret: this.config.get('JWT_SECRET_KEY'),
@@ -73,6 +77,20 @@ export class JwtHelperService {
           }
         }
       }
+    }
+  }
+
+  async decodeTicketBetId(token) {
+    let objFromToken: any = await this.jwt.decode(token);
+    if(objFromToken == null) {
+      return {
+        status: false,
+        objFromToken: {},
+      }
+    }
+    return {
+      status: true,
+      objFromToken,
     }
   }
 }

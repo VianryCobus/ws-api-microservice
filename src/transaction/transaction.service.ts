@@ -850,13 +850,13 @@ export class TransactionService {
   }
 
   // get detail transactions views
-  async getDetailTrxViews(dto: GetDetailTrxViewDto){
+  async getDetailTrxViews(ticketBetId: string){
     const detailTrx = await this.detailTransaction.find({
       relations: {
         transactions: true,
       },
       where: {
-        ticketBetId: dto.ticketBetId
+        ticketBetId: ticketBetId
       }
     })
     return detailTrx;

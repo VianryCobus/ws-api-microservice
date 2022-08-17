@@ -1,5 +1,6 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, ParseArrayPipe, Post, Query, Render, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, ParseArrayPipe, Post, Query, Render, UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import { BalanceDto } from 'src/user/dto';
+import { JwtHelperService } from 'src/utils/helper';
 import { validationSeamless, validationSeamlessArray } from 'src/utils/pipe';
 import { Http } from 'winston/lib/winston/transports';
 import { BetResultDto, CancelBetDto, GetDetailTrxViewDto, PlaceBetDto, RollbackBetResultDto } from './dto';
@@ -7,7 +8,10 @@ import { TransactionService } from './transaction.service';
 
 @Controller('provider')
 export class TransactionController {
-  constructor(private transactionService: TransactionService){}
+  constructor(
+    private transactionService: TransactionService,
+    private jwtHelperService: JwtHelperService
+  ){}
 
   @Post('bet')
   @HttpCode(200)
@@ -52,7 +56,10 @@ export class TransactionController {
   @HttpCode(200)
   @Render('transactions/index')
   async getDetailTrx(@Query(new ValidationPipe()) dto: GetDetailTrxViewDto){
-    const ticketBetId = await this.transactionService.getDetailTrxViews(dto);
+    const decodeId = await this.jwtHelperService.decodeTicketBetId(dto.ticketBetId);
+    if(!decodeId.status)
+    throw new UnauthorizedException(`Token isn't valid`);
+    const ticketBetId = await this.transactionService.getDetailTrxViews(decodeId.objFromToken.sub);
     return {
       ticketBetId
     }
