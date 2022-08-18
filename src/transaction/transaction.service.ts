@@ -170,7 +170,7 @@ export class TransactionService {
           current_balance_players: checkBalance.afterBalance,
           players_id: balanceClientHl.players_id,
           transactions_types_id: 3,
-          aggregator_id: 29,
+          aggregator_id: this.config.get('WS_SPORT_AGGREGATOR_ID'),
           note_balance_players: 'bet',
         },{
           removeOnComplete: true,
@@ -407,7 +407,7 @@ export class TransactionService {
                   current_balance_players: checkBalance.afterBalance,
                   players_id: balanceClientHl.players_id,
                   transactions_types_id: 4,
-                  aggregator_id: 29,
+                  aggregator_id: this.config.get('WS_SPORT_AGGREGATOR_ID'),
                   note_balance_players: 'betresult',
                 },{
                   removeOnComplete: true,
@@ -637,7 +637,7 @@ export class TransactionService {
                   current_balance_players: checkBalance.afterBalance,
                   players_id: balanceClientHl.players_id,
                   transactions_types_id: 5,
-                  aggregator_id: 29,
+                  aggregator_id: this.config.get('WS_SPORT_AGGREGATOR_ID'),
                   note_balance_players: 'rollbackbetresult',
                 },{
                   removeOnComplete: true,
@@ -866,7 +866,7 @@ export class TransactionService {
                   current_balance_players: checkBalance.afterBalance,
                   players_id: balanceClientHl.players_id,
                   transactions_types_id: 5,
-                  aggregator_id: 29,
+                  aggregator_id: this.config.get('WS_SPORT_AGGREGATOR_ID'),
                   note_balance_players: 'cancelbet',
                 },{
                   removeOnComplete: true,
