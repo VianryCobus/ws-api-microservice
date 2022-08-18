@@ -106,6 +106,7 @@ export class UserService {
         balance: historyBalance.current_balance_players,
         players_id: player.id_players,
         username_players: player.username_players,
+        userid_players: player.userid_players,
       };
     } catch (error) {
       this.loggerHelperService.debugLog(

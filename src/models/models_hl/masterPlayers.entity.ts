@@ -9,6 +9,9 @@ export class MasterPlayersMysqlHl {
   @Column()
   username_players: string;
 
+  @Column()
+  userid_players: string;
+
   @OneToMany(() => HistoryBalancePlayersMysqlHL, (hbpmh) => hbpmh.mpmh)
   @JoinColumn({ name:"id_players",referencedColumnName:"players_id" })
   hbpmh: HistoryBalancePlayersMysqlHL[]

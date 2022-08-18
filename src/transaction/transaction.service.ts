@@ -174,7 +174,6 @@ export class TransactionService {
           note_balance_players: 'bet',
         },{
           removeOnComplete: true,
-          delay: 2000,
         });
 
         // build jwt trx detail key
@@ -184,18 +183,18 @@ export class TransactionService {
 
         // add to queue in order to push data to gamelog Happy Luck client
         await this.queue.add('hpl-gamelog-job',{
-          userid: balanceClientHl.players_id,
+          username: balanceClientHl.username_players,
+          userid: balanceClientHl.userid_players,
           trans_games: dto.id,
           bet: dto.bAmt,
           win: 0,
-          lose: dto.payout,
-          payout: dto.payout,
-          detail: "<button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
-          games_code: 'WS001',
+          lose: dto.bAmt,
+          payout: 0,
+          detail: "Status: Bet <button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
+          game_code: 'WS001',
           balance: checkBalance.afterBalance,
         },{
           removeOnComplete: true,
-          delay: 1000,
         });
       }
 
@@ -412,7 +411,6 @@ export class TransactionService {
                   note_balance_players: 'betresult',
                 },{
                   removeOnComplete: true,
-                  delay: 2000
                 });
 
                 // build jwt trx detail key
@@ -420,20 +418,38 @@ export class TransactionService {
                   ticketBetId: e.id
                 },'trxDetailKey');
 
+                // determine win and lose
+                let gamelogWin: number = 0;
+                let gamelogLose: number = e.creditDeducted;
+                switch(e.winloss){
+                  case 1:
+                  case 2:
+                  case 3:
+                  case 4:
+                    gamelogWin = e.payout - e.creditDeducted;
+                    break;
+                  case 0:
+                    gamelogLose = e.creditDeducted
+                    break;
+                  default:
+                    gamelogWin = 0;
+                    gamelogLose = e.creditDeducted;
+                }
+
                 // add to queue in order to push data to gamelog Happy Luck client
                 await this.queue.add('hpl-gamelog-job',{
-                  userid: balanceClientHl.players_id,
+                  username: balanceClientHl.username_players,
+                  userid: balanceClientHl.userid_players,
                   trans_games: e.id,
                   bet: e.bAmt,
-                  win: (e.winloss === 1) ? e.payout - e.creditDeducted : 0,
-                  lose: e.creditDeducted,
+                  win: gamelogWin,
+                  lose: gamelogLose,
                   payout: e.payout,
-                  detail: "<button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
-                  games_code: 'WS001',
+                  detail: "Status: Bet Result <button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
+                  game_code: 'WS001',
                   balance: checkBalance.afterBalance,
                 },{
                   removeOnComplete: true,
-                  delay: 1000,
                 });
               }
 
@@ -625,7 +641,6 @@ export class TransactionService {
                   note_balance_players: 'rollbackbetresult',
                 },{
                   removeOnComplete: true,
-                  delay: 2000
                 })
 
                 // build jwt trx detail key
@@ -633,20 +648,38 @@ export class TransactionService {
                   ticketBetId: e.id
                 },'trxDetailKey');
 
+                // determine win and lose
+                let gamelogWin: number = 0;
+                let gamelogLose: number = e.creditDeducted;
+                switch(e.winloss){
+                  case 1:
+                  case 2:
+                  case 3:
+                  case 4:
+                    gamelogWin = e.payout - e.creditDeducted;
+                    break;
+                  case 0:
+                    gamelogLose = e.creditDeducted
+                    break;
+                  default:
+                    gamelogWin = 0;
+                    gamelogLose = e.creditDeducted;
+                }
+
                 // add to queue in order to push data to gamelog Happy Luck client
                 await this.queue.add('hpl-gamelog-job',{
-                  userid: balanceClientHl.players_id,
+                  username: balanceClientHl.username_players,
+                  userid: balanceClientHl.userid_players,
                   trans_games: e.id,
                   bet: e.bAmt,
-                  win: (e.winloss === 1) ? e.payout - e.creditDeducted : 0,
-                  lose: e.creditDeducted,
+                  win: gamelogWin,
+                  lose: gamelogLose,
                   payout: e.payout,
-                  detail: "<button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
-                  games_code: 'WS001',
+                  detail: "Status: Rollback Bet <button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
+                  game_code: 'WS001',
                   balance: checkBalance.afterBalance,
                 },{
                   removeOnComplete: true,
-                  delay: 1000,
                 });
               }
 
@@ -837,7 +870,6 @@ export class TransactionService {
                   note_balance_players: 'cancelbet',
                 },{
                   removeOnComplete: true,
-                  delay: 2000,
                 })
 
                 // build jwt trx detail key
@@ -847,18 +879,18 @@ export class TransactionService {
 
                 // add to queue in order to push data to gamelog Happy Luck client
                 await this.queue.add('hpl-gamelog-job',{
-                  userid: balanceClientHl.players_id,
+                  username: balanceClientHl.username_players,
+                  userid: balanceClientHl.userid_players,
                   trans_games: e.id,
                   bet: e.bAmt,
                   win: 0,
                   lose: 0,
                   payout: e.payout,
-                  detail: "<button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
-                  games_code: 'WS001',
+                  detail: "Status: Cancel Bet <button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
+                  game_code: 'WS001',
                   balance: checkBalance.afterBalance,
                 },{
                   removeOnComplete: true,
-                  delay: 1000,
                 });
 
               }

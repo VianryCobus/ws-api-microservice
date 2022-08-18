@@ -15,6 +15,7 @@ export class HappyLuckPushGamelogConsumer {
     let val: any = job.data;
     // build params object
     const params = {
+      username: val.username,
       userid: val.userid,
       trans_games: val.trans_games,
       datetime: new Date(),
@@ -23,7 +24,7 @@ export class HappyLuckPushGamelogConsumer {
       lose: val.lose,
       payout: val.payout,
       detail: val.detail,
-      games_code: val.games_code,
+      game_code: val.game_code,
       balance: val.balance,
     }
     // const push gamelog
