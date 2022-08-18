@@ -2,7 +2,7 @@ import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Agent, Balance, Currency, DetailTransaction, Transaction, User, Wallet } from 'src/models';
-import { DetailTransactionConsumer, HistoryBalanceConsumer, TransactionHappyLuckConsumer } from 'src/utils/queue';
+import { DetailTransactionConsumer, HappyLuckPushGamelogConsumer, HistoryBalanceConsumer, TransactionHappyLuckConsumer } from 'src/utils/queue';
 import { TransactionController } from './transaction.controller';
 import { TransactionService } from './transaction.service';
 require ("dotenv").config();
@@ -35,6 +35,7 @@ require ("dotenv").config();
     HistoryBalanceConsumer,
     DetailTransactionConsumer,
     TransactionHappyLuckConsumer,
+    HappyLuckPushGamelogConsumer,
   ],
 })
 export class TransactionModule {}

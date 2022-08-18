@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, ParseArrayPipe, Post, Query, Render, UnauthorizedException, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, ParseArrayPipe, Post, Query, Render, Req, UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import { BalanceDto } from 'src/user/dto';
 import { JwtHelperService } from 'src/utils/helper';
 import { validationSeamless, validationSeamlessArray } from 'src/utils/pipe';
@@ -63,6 +63,12 @@ export class TransactionController {
     return {
       ticketBetId
     }
+  }
+
+  @Post('check')
+  async check(@Body() req){
+    console.log("from transaction controller ====");
+    console.log(req);
   }
 
 }

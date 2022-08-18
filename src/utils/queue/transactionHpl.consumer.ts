@@ -25,7 +25,7 @@ export class TransactionHappyLuckConsumer {
       .values({
         players_id: val.players_id,
         transactions_types_id: val.transactions_types_id,
-        no_transactions: `${val.ticketBetId}-${val.transId}`,
+        no_transactions: val.ticketBetId,
         aggregator_id: val.aggregator_id,
         amount_balance_players: val.amount_balance_players,
         current_balance_players: val.current_balance_players,

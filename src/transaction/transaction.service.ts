@@ -2,11 +2,12 @@ import { InjectQueue } from '@nestjs/bull';
 import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
-import { LoggerHelperService } from 'src/utils/helper';
+import { JwtHelperService, LoggerHelperService } from 'src/utils/helper';
 import { Agent, Currency, DetailTransaction, Transaction, User, Wallet } from 'src/models';
 import { UserService } from 'src/user/user.service';
 import { DataSource, Repository } from 'typeorm';
 import { BetResultDto, CancelBetDto, GetDetailTrxViewDto, PlaceBetDto, RollbackBetResultDto } from './dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TransactionService {
@@ -21,6 +22,8 @@ export class TransactionService {
     @InjectQueue('ws-queue') private queue:Queue,
     private userService: UserService,
     private loggerHelperService: LoggerHelperService,
+    private config: ConfigService,
+    private jwtHelperService: JwtHelperService,
   ) {
     this.logger = new Logger();
   }
@@ -171,7 +174,28 @@ export class TransactionService {
           note_balance_players: 'bet',
         },{
           removeOnComplete: true,
-          delay: 2000
+          delay: 2000,
+        });
+
+        // build jwt trx detail key
+        const buildJwtTrxDetail = await this.jwtHelperService.signToken({
+          ticketBetId: dto.id
+        },'trxDetailKey');
+
+        // add to queue in order to push data to gamelog Happy Luck client
+        await this.queue.add('hpl-gamelog-job',{
+          userid: balanceClientHl.players_id,
+          trans_games: dto.id,
+          bet: dto.bAmt,
+          win: 0,
+          lose: dto.payout,
+          payout: dto.payout,
+          detail: "<button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
+          games_code: 'WS001',
+          balance: checkBalance.afterBalance,
+        },{
+          removeOnComplete: true,
+          delay: 1000,
         });
       }
 
@@ -390,6 +414,27 @@ export class TransactionService {
                   removeOnComplete: true,
                   delay: 2000
                 });
+
+                // build jwt trx detail key
+                const buildJwtTrxDetail = await this.jwtHelperService.signToken({
+                  ticketBetId: e.id
+                },'trxDetailKey');
+
+                // add to queue in order to push data to gamelog Happy Luck client
+                await this.queue.add('hpl-gamelog-job',{
+                  userid: balanceClientHl.players_id,
+                  trans_games: e.id,
+                  bet: e.bAmt,
+                  win: (e.winloss === 1) ? e.payout - e.creditDeducted : 0,
+                  lose: e.creditDeducted,
+                  payout: e.payout,
+                  detail: "<button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
+                  games_code: 'WS001',
+                  balance: checkBalance.afterBalance,
+                },{
+                  removeOnComplete: true,
+                  delay: 1000,
+                });
               }
 
             }
@@ -582,6 +627,27 @@ export class TransactionService {
                   removeOnComplete: true,
                   delay: 2000
                 })
+
+                // build jwt trx detail key
+                const buildJwtTrxDetail = await this.jwtHelperService.signToken({
+                  ticketBetId: e.id
+                },'trxDetailKey');
+
+                // add to queue in order to push data to gamelog Happy Luck client
+                await this.queue.add('hpl-gamelog-job',{
+                  userid: balanceClientHl.players_id,
+                  trans_games: e.id,
+                  bet: e.bAmt,
+                  win: (e.winloss === 1) ? e.payout - e.creditDeducted : 0,
+                  lose: e.creditDeducted,
+                  payout: e.payout,
+                  detail: "<button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
+                  games_code: 'WS001',
+                  balance: checkBalance.afterBalance,
+                },{
+                  removeOnComplete: true,
+                  delay: 1000,
+                });
               }
 
             }
@@ -773,6 +839,28 @@ export class TransactionService {
                   removeOnComplete: true,
                   delay: 2000,
                 })
+
+                // build jwt trx detail key
+                const buildJwtTrxDetail = await this.jwtHelperService.signToken({
+                  ticketBetId: e.id
+                },'trxDetailKey');
+
+                // add to queue in order to push data to gamelog Happy Luck client
+                await this.queue.add('hpl-gamelog-job',{
+                  userid: balanceClientHl.players_id,
+                  trans_games: e.id,
+                  bet: e.bAmt,
+                  win: 0,
+                  lose: 0,
+                  payout: e.payout,
+                  detail: "<button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
+                  games_code: 'WS001',
+                  balance: checkBalance.afterBalance,
+                },{
+                  removeOnComplete: true,
+                  delay: 1000,
+                });
+
               }
 
             }

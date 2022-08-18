@@ -20,7 +20,7 @@ export class JwtHelperService {
       }
     } else if(action == "trxDetailKey"){
       payload = {
-        sub: params.tickeBetId,
+        sub: params.ticketBetId,
       }
     }
     const token = await this.jwt.signAsync(payload, {

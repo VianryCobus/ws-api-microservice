@@ -226,4 +226,34 @@ export class HitProviderService {
     }
     return responseProvider;
   }
+
+  // push gamelog (HL Client)
+  async pushGamelogHl(params) {
+    // console.log("from hit provider ====");
+    // console.log(params);
+    this.loggerHelperService.debugLog(
+      'Hit Endpoint Gamelog Client (HL)',
+      {
+        Url: process.env.GAMELOG_URL,
+        params,
+      }
+    );
+    const pushGamelog = await axios.post(process.env.GAMELOG_URL,params);
+    if(pushGamelog){
+      this.loggerHelperService.debugLog(
+        'Return Hit Endpoint Gamelog Client (HL)',
+        {
+          Url: process.env.GAMELOG_URL,
+          return: pushGamelog,
+        }
+      );
+      return {
+        status: true,
+      }
+    } else {
+      return {
+        status: false,
+      }
+    }
+  }
 }
