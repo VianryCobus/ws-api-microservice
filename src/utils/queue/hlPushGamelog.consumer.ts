@@ -18,7 +18,9 @@ export class HappyLuckPushGamelogConsumer {
       username: val.username,
       userid: val.userid,
       trans_games: val.trans_games,
-      datetime: new Date(),
+      datetime: new Date().toLocaleString('id-Id',{
+        timeZone: 'Asia/Makassar'
+      }),
       bet: val.bet,
       win: val.win,
       lose: val.lose,

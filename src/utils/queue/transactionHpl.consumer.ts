@@ -30,7 +30,9 @@ export class TransactionHappyLuckConsumer {
         amount_balance_players: val.amount_balance_players,
         current_balance_players: val.current_balance_players,
         note_balance_players: val.note_balance_players,
-        datetime_balance_players: new Date(),
+        datetime_balance_players: new Date().toLocaleString('id-Id',{
+          timeZone: 'Asia/Makassar'
+        }),
       })
       .execute();
 
