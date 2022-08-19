@@ -239,7 +239,7 @@ export class HitProviderService {
       }
     );
     const pushGamelog = await axios.post(process.env.GAMELOG_URL,params);
-    if(pushGamelog){
+    if(pushGamelog.data.status === "success"){
       this.loggerHelperService.debugLog(
         'Return Hit Endpoint Gamelog Client (HL)',
         {
