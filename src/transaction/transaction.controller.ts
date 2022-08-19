@@ -69,6 +69,14 @@ export class TransactionController {
   async check(@Body() req){
     console.log("from transaction controller ====");
     console.log(req);
+    const dateOrigin = new Date();
+    console.log(dateOrigin);
+    const dateTimezone = new Date().setHours(new Date().getHours() + 8);
+    return {
+      req: req,
+      dateOrigin: dateOrigin,
+      dateTimezone: new Date(dateTimezone)
+    }
   }
 
 }

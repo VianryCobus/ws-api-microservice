@@ -2,6 +2,7 @@ import { Process, Processor } from "@nestjs/bull";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { Job } from "bull";
 import { HistoryBalancePlayersMysqlHL } from "src/models/models_hl";
+import { HistoryBalancePlayersMysqlLocal } from "src/models/models_mysqlLocal";
 // import { HistoryBalancePlayersMysqlLocal } from "src/models/models_mysqlLocal";
 import { DataSource } from "typeorm";
 import { LoggerHelperService } from "../helper";
@@ -30,9 +31,7 @@ export class TransactionHappyLuckConsumer {
         amount_balance_players: val.amount_balance_players,
         current_balance_players: val.current_balance_players,
         note_balance_players: val.note_balance_players,
-        datetime_balance_players: new Date().toLocaleString('id-Id',{
-          timeZone: 'Asia/Makassar'
-        }),
+        datetime_balance_players: new Date(new Date().setHours(new Date().getHours() + 8)),
       })
       .execute();
 
