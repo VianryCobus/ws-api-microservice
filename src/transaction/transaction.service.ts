@@ -190,7 +190,7 @@ export class TransactionService {
           win: 0,
           lose: dto.bAmt,
           payout: 0,
-          detail: "Status: Bet <button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
+          detail: `Status: Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400')">Detail</button>`,
           game_code: 'WS001',
           balance: checkBalance.afterBalance,
         },{
@@ -445,7 +445,7 @@ export class TransactionService {
                   win: gamelogWin,
                   lose: gamelogLose,
                   payout: e.payout,
-                  detail: "Status: Bet Result <button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
+                  detail: `Status: Bet Result <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400')">Detail</button>`,
                   game_code: 'WS001',
                   balance: checkBalance.afterBalance,
                 },{
@@ -675,7 +675,7 @@ export class TransactionService {
                   win: gamelogWin,
                   lose: gamelogLose,
                   payout: e.payout,
-                  detail: "Status: Rollback Bet <button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
+                  detail: `Status: Rollback Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400')">Detail</button>`,
                   game_code: 'WS001',
                   balance: checkBalance.afterBalance,
                 },{
@@ -886,7 +886,7 @@ export class TransactionService {
                   win: 0,
                   lose: 0,
                   payout: e.payout,
-                  detail: "Status: Cancel Bet <button class='btn btn-block btn-success' onclick='window.open(`"+this.config.get('WS_SPORT_CC_URL')+"/api/provider/getDetailTrx?ticketBetId="+buildJwtTrxDetail.access_token+"`,`_blank`,`toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400`)'>Detail</button>",
+                  detail: `Status: Cancel Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400')">Detail</button>`,
                   game_code: 'WS001',
                   balance: checkBalance.afterBalance,
                 },{
@@ -976,7 +976,10 @@ export class TransactionService {
         transactions: true,
       },
       where: {
-        ticketBetId: ticketBetId
+        ticketBetId: ticketBetId,
+        transactions: {
+          ep: 'betresult',
+        }
       }
     })
     return detailTrx;

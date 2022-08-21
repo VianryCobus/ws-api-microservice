@@ -6,12 +6,21 @@
   font-size: 8pt;
 }
 
+.font-xss-content {
+  font-size: 7pt;
+}
+
 .font-blue {
   color: rgb(76, 115, 242);
 }
 
 .font-red {
   color: rgb(240, 68, 25);
+}
+
+.images-small {
+  width: 425px;
+  height: auto;
 }
 
 /*# sourceMappingURL=index.css.map */

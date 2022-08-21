@@ -8,11 +8,16 @@
     <!-- local css -->
     <link rel="stylesheet" href="/css/index.css">
   </head>
-  <body>
+  <body class="bg-dark text-dark bg-opacity-75">
     <div class="container-fluid">
+      <div class="row d-flex justify-content-center">
+        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 d-flex justify-content-center">
+          <img class="images-small" src="/assets/logo/ws-sport/WS-Sport_logo-FA-1.png" alt="">
+        </div>
+      </div>
       <div class="row">
         <div class="col-12-lg col-12-md col-12-sm col-12-xs">
-          <table class="table table-sm table-bordered font-sm-table">
+          <table class="table table-sm table-bordered font-sm-table table-secondary">
             <thead>
               <tr>
                 <th scope="col" rowspan="4" class="align-middle"><center>#</center></th>
@@ -22,13 +27,13 @@
                 <th scope="col" rowspan="4" class="align-middle"><center>Stake Comm %</center></th>
                 <th scope="col" rowspan="4" class="align-middle"><center>W/L Comm</center></th>
                 <th scope="col" rowspan="4" class="align-middle"><center>Status</center></th>
-                <th scope="col"><center>AG</center></th>
+                <!-- <th scope="col"><center>AG</center></th>
                 <th scope="col"><center>MA</center></th>
                 <th scope="col"><center>SR</center></th>
-                <th scope="col"><center>COM</center></th>
+                <th scope="col"><center>COM</center></th> -->
                 <th scope="col" rowspan="4" class="align-middle"><center>IP</center></th>
               </tr>
-              <tr>
+              <!-- <tr>
                 <th scope="col"><center>PT</center></th>
                 <th scope="col"><center>PT</center></th>
                 <th scope="col"><center>PT</center></th>
@@ -45,13 +50,13 @@
                 <th scope="col"><center>Comm</center></th>
                 <th scope="col"><center>Comm</center></th>
                 <th scope="col"><center>Comm</center></th>
-              </tr>
+              </tr> -->
             </thead>
             <tbody>
               <% ticketBetId.forEach((e,i) => { %>
                 <tr>
                   <th scope="row" class="align-middle"><%= i + 1 %></th>
-                  <td>
+                  <td class="align-middle">
                     <center>
                       <span class="font-blue">
                         <%= e.ticketBetId %> 
@@ -64,29 +69,96 @@
                       <%= e.tDate %> 
                     </center>
                   </td>
-                  <td>
-                    <center>
-                      <% if(e.game === "HDP") { %> 
-                        <% if (e.side === "h") { %>
-                          <%= e.home %> 
+                  <td class="text-end align-middle">
+                    <% if(e.game === "HDP" || e.game === "OU") { %> 
+                      <% if (e.side === "h") { %>
+                        <% if (e.info.substring(0,1) === "-") { %>
+                          <span class="font-red"><%= e.home %> </span>
                         <% } else { %>
-                          <%= e.away %> 
+                          <span class="font-blue"><%= e.home %> </span>
                         <% } %>
-                      <% } else { %> 
-                        OU
-                      <% } %> 
-                      <%= Number(e.odds).toFixed(2) %> 
-                      <br>
-                      <span class="font-xs-content">
-                        <%= e.home %> 
-                      </span> 
-                      -vs- 
-                      <span class="font-xs-content">
+                      <% } else { %>
                         <%= e.away %> 
-                      </span>
-                    </center>
+                      <% } %>
+                    <% } else { %> 
+                      Nothing
+                    <% } %> 
+                    <%= Number(e.info).toFixed(2) %> 
+                    <br>
+                    <b><i>
+                      <% if (e.game === "HDP") { %>
+                        HANDICAP
+                      <% } else if (e.game === "OU") { %>
+                        OVER UNDER
+                      <% } else if (e.game === "PARLAY") { %>
+                        MIX PARLAY
+                      <% } else { %>
+                        <%= e.game %> 
+                      <% } %>
+                    </i></b>
+                    <br>
+                    <span class="font-xs-content font-blue">
+                      <%= e.home %> 
+                    </span> 
+                    -vs- 
+                    <span class="font-xs-content font-red">
+                      <%= e.away %> 
+                    </span>
+                    <br>
+                    <span class="font-xss-content">
+                      <%= e.league_en %> @ <%= e.sDate %> 
+                    </span>
                   </td>
-                  <td></td>
+                  <td class="align-middle text-end">
+                    <b><i> <%= e.odds %> </i></b>
+                    <br>
+                    <span class="font-xss-content">
+                      <%= e.oddsType %> 
+                    </span>
+                  </td>
+                  <td class="align-middle text-end">
+                    <b><i> <%= e.bAmt %> </i></b>
+                    <br>
+                    <span class="font-xss-content">
+                      <%= Number(e.commision).toFixed(2) %> %
+                    </span>
+                  </td>
+                  <td class="align-middle text-end">
+                    <b><i> <%= e.wAmt %> </i></b>
+                    <br>
+                    <span class="font-xss-content">
+                      <%= Number(e.commision).toFixed(2) %> %
+                    </span>
+                  </td>
+                  <td class="align-middle text-end">
+                    <center>
+                      <b><i>
+                        <% if (e.transactions[0].winloss === 1) { %>
+                          WON
+                        <% } else if (e.transactions[0].winloss === 0) { %>
+                          LOSE
+                        <% } else if (e.transactions[0].winloss === 2) { %>
+                          DRAW
+                        <% } else if (e.transactions[0].winloss === 3) { %>
+                          WIN HALF
+                        <% } else { %>
+                          LOSE HALF
+                        <% } %>
+                      </i></b>
+                      <br>
+                      FT <%= (e.ftscore) ? e.ftscore : null %> 
+                      <br>
+                      <%= (e.htscore) ? "HT "+e.htscore+"<br>" : null %> 
+                      <span class="font-xss-content font-red">
+                        <%= e.pDate %> %
+                      </span>
+                  </center>
+                  </td>
+                  <td class="align-middle text-end">
+                    <center>
+                      <i class="font-blue"> <%= e.ip %> </i>
+                  </center>
+                  </td>
                 </tr>
               <% }) %>
             </tbody>
