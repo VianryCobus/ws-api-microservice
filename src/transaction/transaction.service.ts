@@ -3,7 +3,7 @@ import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { JwtHelperService, LoggerHelperService } from 'src/utils/helper';
-import { Agent, Currency, DetailTransaction, Transaction, User, Wallet } from 'src/models';
+import { Agent, Config, Currency, DetailTransaction, Transaction, User, Wallet } from 'src/models';
 import { UserService } from 'src/user/user.service';
 import { DataSource, Repository } from 'typeorm';
 import { BetResultDto, CancelBetDto, GetDetailTrxViewDto, PlaceBetDto, RollbackBetResultDto } from './dto';
@@ -19,6 +19,7 @@ export class TransactionService {
     @InjectRepository(Agent) private agentsRepository: Repository<Agent>,
     @InjectRepository(Transaction) private transactionsRepository: Repository<Transaction>,
     @InjectRepository(DetailTransaction) private detailTransaction: Repository<DetailTransaction>,
+    @InjectRepository(Config) private configRepository: Repository<Config>,
     @InjectQueue('ws-queue') private queue:Queue,
     private userService: UserService,
     private loggerHelperService: LoggerHelperService,
@@ -181,6 +182,9 @@ export class TransactionService {
           ticketBetId: dto.id
         },'trxDetailKey');
 
+        // get games code
+        const gameCode = await this.getGamesCode();
+
         // add to queue in order to push data to gamelog Happy Luck client
         await this.queue.add('hpl-gamelog-job',{
           username: balanceClientHl.username_players,
@@ -191,7 +195,7 @@ export class TransactionService {
           lose: dto.bAmt,
           payout: 0,
           detail: `Status: Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400')">Detail</button>`,
-          game_code: 'WS001',
+          game_code: gameCode.gameId,
           balance: checkBalance.afterBalance,
         },{
           removeOnComplete: true,
@@ -418,6 +422,9 @@ export class TransactionService {
                   ticketBetId: e.id
                 },'trxDetailKey');
 
+                // get games code
+                const gameCode = await this.getGamesCode();
+
                 // determine win and lose
                 let gamelogWin: number = 0;
                 let gamelogLose: number = e.creditDeducted;
@@ -446,7 +453,7 @@ export class TransactionService {
                   lose: gamelogLose,
                   payout: e.payout,
                   detail: `Status: Bet Result <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400')">Detail</button>`,
-                  game_code: 'WS001',
+                  game_code: gameCode.gameId,
                   balance: checkBalance.afterBalance,
                 },{
                   removeOnComplete: true,
@@ -648,6 +655,9 @@ export class TransactionService {
                   ticketBetId: e.id
                 },'trxDetailKey');
 
+                // get games code
+                const gameCode = await this.getGamesCode();
+
                 // determine win and lose
                 let gamelogWin: number = 0;
                 let gamelogLose: number = e.creditDeducted;
@@ -676,7 +686,7 @@ export class TransactionService {
                   lose: gamelogLose,
                   payout: e.payout,
                   detail: `Status: Rollback Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400')">Detail</button>`,
-                  game_code: 'WS001',
+                  game_code: gameCode.gameId,
                   balance: checkBalance.afterBalance,
                 },{
                   removeOnComplete: true,
@@ -877,6 +887,9 @@ export class TransactionService {
                   ticketBetId: e.id
                 },'trxDetailKey');
 
+                // get games code
+                const gameCode = await this.getGamesCode();
+
                 // add to queue in order to push data to gamelog Happy Luck client
                 await this.queue.add('hpl-gamelog-job',{
                   username: balanceClientHl.username_players,
@@ -887,7 +900,7 @@ export class TransactionService {
                   lose: 0,
                   payout: e.payout,
                   detail: `Status: Cancel Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400')">Detail</button>`,
-                  game_code: 'WS001',
+                  game_code: gameCode.gameId,
                   balance: checkBalance.afterBalance,
                 },{
                   removeOnComplete: true,
@@ -983,6 +996,18 @@ export class TransactionService {
       }
     })
     return detailTrx;
+  }
+
+  async getGamesCode() : Promise<any>{
+    const gameCode = await this.configRepository.findOne({
+      select: {
+        gameId: true,
+      },
+      where: {
+        isMaintenance: 0,
+      }
+    });
+    return gameCode;
   }
 
 }

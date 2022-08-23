@@ -73,9 +73,11 @@ export class TransactionController {
     console.log(dateOrigin);
     const dateTimezone = new Date().setHours(new Date().getHours() + 8);
     return {
-      req: req,
-      dateOrigin: dateOrigin,
-      dateTimezone: new Date(dateTimezone)
+      // req: req,
+      // dateOrigin: dateOrigin,
+      // dateTimezone: new Date(dateTimezone)
+      status: "success",
+      message: "data added succesfully",
     }
   }
 

@@ -229,8 +229,6 @@ export class HitProviderService {
 
   // push gamelog (HL Client)
   async pushGamelogHl(params) {
-    // console.log("from hit provider ====");
-    // console.log(params);
     this.loggerHelperService.debugLog(
       'Hit Endpoint Gamelog Client (HL)',
       {
@@ -239,12 +237,13 @@ export class HitProviderService {
       }
     );
     const pushGamelog = await axios.post(process.env.GAMELOG_URL,params);
-    if(pushGamelog.data.status === "success"){
+    if(pushGamelog.data.status == "success"){
+      console.log("masuk");
       this.loggerHelperService.debugLog(
         'Return Hit Endpoint Gamelog Client (HL)',
         {
           Url: process.env.GAMELOG_URL,
-          return: pushGamelog,
+          return: pushGamelog.data,
         }
       );
       return {

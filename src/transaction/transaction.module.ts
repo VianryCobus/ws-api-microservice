@@ -1,7 +1,7 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Agent, Balance, Currency, DetailTransaction, Transaction, User, Wallet } from 'src/models';
+import { Agent, Balance, Config, Currency, DetailTransaction, Transaction, User, Wallet } from 'src/models';
 import { DetailTransactionConsumer, HappyLuckPushGamelogConsumer, HistoryBalanceConsumer, TransactionHappyLuckConsumer } from 'src/utils/queue';
 import { TransactionController } from './transaction.controller';
 import { TransactionService } from './transaction.service';
@@ -17,6 +17,7 @@ require ("dotenv").config();
       Transaction,
       Balance,
       DetailTransaction,
+      Config,
     ]),
     BullModule.forRoot({
       redis: {
