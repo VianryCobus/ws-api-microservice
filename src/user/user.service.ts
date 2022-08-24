@@ -99,7 +99,8 @@ export class UserService {
           players_id: player.id_players,
         },
         order: {
-          datetime_balance_players: "DESC",
+          // datetime_balance_players: "DESC",
+          id_history_balance_players: "DESC",
         }
       });
       return {
