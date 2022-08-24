@@ -52,6 +52,8 @@ export class TransactionService {
           message: "882",
         }
       }
+      // find the ratio currency
+      const ratioCurr = this.getCurrencyRatio(user.client.agent.currency.ratio);
       let beforeBalance: number;
       let balanceClientHl: any;
       if (user.client.username === "HL"){
@@ -190,13 +192,13 @@ export class TransactionService {
           username: balanceClientHl.username_players,
           userid: balanceClientHl.userid_players,
           trans_games: dto.id,
-          bet: dto.bAmt,
+          bet: dto.bAmt * ratioCurr,
           win: 0,
-          lose: dto.bAmt,
+          lose: dto.bAmt * ratioCurr,
           payout: 0,
           detail: `Status: Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400')">Detail</button>`,
           game_code: gameCode.gameId,
-          balance: checkBalance.afterBalance,
+          balance: checkBalance.afterBalance * ratioCurr,
         },{
           removeOnComplete: true,
         });
@@ -293,6 +295,8 @@ export class TransactionService {
               message: "550"
             }
           } else {
+            // find the ratio currency
+            const ratioCurr = this.getCurrencyRatio(user.client.agent.currency.ratio);
             let beforeBalance: number;
             let balanceClientHl: any;
             if(user.client.username === "HL"){
@@ -448,13 +452,13 @@ export class TransactionService {
                   username: balanceClientHl.username_players,
                   userid: balanceClientHl.userid_players,
                   trans_games: e.id,
-                  bet: e.bAmt,
-                  win: gamelogWin,
-                  lose: gamelogLose,
-                  payout: e.payout,
+                  bet: e.bAmt * ratioCurr,
+                  win: gamelogWin * ratioCurr,
+                  lose: gamelogLose * ratioCurr,
+                  payout: e.payout * ratioCurr,
                   detail: `Status: Bet Result <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400')">Detail</button>`,
                   game_code: gameCode.gameId,
-                  balance: checkBalance.afterBalance,
+                  balance: checkBalance.afterBalance * ratioCurr,
                 },{
                   removeOnComplete: true,
                 });
@@ -537,6 +541,8 @@ export class TransactionService {
               message: "550"
             }
           } else {
+            // find the ratio currency
+            const ratioCurr = this.getCurrencyRatio(user.client.agent.currency.ratio);
             let beforeBalance: number;
             let balanceClientHl: any;
             if(user.client.username === "HL"){
@@ -681,13 +687,13 @@ export class TransactionService {
                   username: balanceClientHl.username_players,
                   userid: balanceClientHl.userid_players,
                   trans_games: e.id,
-                  bet: e.bAmt,
-                  win: gamelogWin,
-                  lose: gamelogLose,
-                  payout: e.payout,
+                  bet: e.bAmt * ratioCurr,
+                  win: gamelogWin * ratioCurr,
+                  lose: gamelogLose * ratioCurr,
+                  payout: e.payout * ratioCurr,
                   detail: `Status: Rollback Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400')">Detail</button>`,
                   game_code: gameCode.gameId,
-                  balance: checkBalance.afterBalance,
+                  balance: checkBalance.afterBalance * ratioCurr,
                 },{
                   removeOnComplete: true,
                 });
@@ -770,6 +776,8 @@ export class TransactionService {
               message: "550"
             }
           } else {
+            // find the ratio currency
+            const ratioCurr = this.getCurrencyRatio(user.client.agent.currency.ratio);
             let beforeBalance: number;
             let balanceClientHl: any;
             if(user.client.username === "HL"){
@@ -895,13 +903,13 @@ export class TransactionService {
                   username: balanceClientHl.username_players,
                   userid: balanceClientHl.userid_players,
                   trans_games: e.id,
-                  bet: e.bAmt,
+                  bet: e.bAmt * ratioCurr,
                   win: 0,
                   lose: 0,
-                  payout: e.payout,
+                  payout: e.payout * ratioCurr,
                   detail: `Status: Cancel Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=400,height=400')">Detail</button>`,
                   game_code: gameCode.gameId,
-                  balance: checkBalance.afterBalance,
+                  balance: checkBalance.afterBalance * ratioCurr,
                 },{
                   removeOnComplete: true,
                 });
@@ -990,9 +998,9 @@ export class TransactionService {
       },
       where: {
         ticketBetId: ticketBetId,
-        transactions: {
-          ep: 'betresult',
-        }
+        // transactions: {
+        //   ep: 'betresult',
+        // }
       }
     })
     return detailTrx;
@@ -1008,6 +1016,13 @@ export class TransactionService {
       }
     });
     return gameCode;
+  }
+
+  getCurrencyRatio(ratio: string) : number{
+    const arrRatio: Array<string> = ratio.split(':');
+    const left: string = arrRatio[0];
+    const right: string = arrRatio[1];
+    return Number(right);
   }
 
 }

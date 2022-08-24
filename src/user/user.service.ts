@@ -135,7 +135,9 @@ export class UserService {
         relations: {
           wallet: true,
           client: {
-            agent: true,
+            agent: {
+              currency: true,
+            },
           }
         }
       });

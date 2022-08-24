@@ -16,6 +16,7 @@ const ormConfig: PostgresConnectionOptions = {
   migrations: [
     'dist/src/db/migrations/*.js',
   ],
+  migrationsTableName: "ws_migration_table",
   // cli: {
   //   migrationsDir: 'src/db/migrations'
   // }
