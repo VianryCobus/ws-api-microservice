@@ -72,7 +72,7 @@
                   <td class="text-end align-middle">
                     <% if(e.game === "HDP" || e.game === "OU") { %> 
                       <% if (e.side === "h") { %>
-                        <% if (e.info.substring(0,1) === "-") { %>
+                        <% if (e.info.substr(0,1) === "-") { %>
                           <span class="font-red"><%= e.home %> </span>
                         <% } else { %>
                           <span class="font-blue"><%= e.home %> </span>
@@ -141,8 +141,10 @@
                           DRAW
                         <% } else if (e.transactions[0].winloss === 3) { %>
                           WIN HALF
-                        <% } else { %>
+                        <% } else if (e.transactions[0].winloss === 4) { %>
                           LOSE HALF
+                        <% } else { %>
+                          WAITING RESULT
                         <% } %>
                       </i></b>
                       <br>
