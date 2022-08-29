@@ -1,4 +1,4 @@
-import { ForbiddenException, HttpCode, HttpStatus, Injectable, Res, UseGuards } from "@nestjs/common";
+import { ForbiddenException, HttpCode, HttpStatus, Injectable, Res, UnauthorizedException, UseGuards } from "@nestjs/common";
 import { AuthDto, LogoutDto, SignUpClientDto, SignUpDto } from "./dto";
 import * as bcrypt from 'bcrypt';
 import { GenerateUserIdService } from "src/utils/helper/genUserId/genUserIdHelper.service";
@@ -7,6 +7,7 @@ import { Repository } from "typeorm";
 import { Agent, Client, Currency, User, Wallet } from "src/models";
 import { EncryptService, HitProviderService, JwtHelperService } from "src/utils/helper";
 import { UserService } from "src/user/user.service";
+import { ClientService } from "src/client/client.service";
 
 @Injectable()
 export class AuthService {
@@ -22,6 +23,7 @@ export class AuthService {
     private hitProviderService: HitProviderService,
     private encryptService: EncryptService,
     private jwtHelperService: JwtHelperService,
+    private clientService: ClientService,
   ) {}
 
   async signin(dto: AuthDto, headers) {
@@ -210,18 +212,35 @@ export class AuthService {
     }
   }
 
-  async signout(dto: LogoutDto) {
+  async signout(dto: LogoutDto, dataClientDecode: any) {
+    if(!dataClientDecode.status) throw new ForbiddenException(`Please provide the correct client token`);
+
+    // find the client
+    const findClient = await this.clientService.findTheClient(dataClientDecode);
+
+    // if token isn't suitable with client account throw forbidden
+    if(!findClient) throw new UnauthorizedException(`Token isn't valid`)
+    
     // find the user by userId
     const user = await this.usersRepository.findOne({
       relations: {
-        client: true,
+        client: {
+          agent: true,
+        },
       },
       where: {
-        userId: dto.userId
+        userId: dto.userId,
+        client: {
+          agent: {
+            agentKey: findClient.agent.agentKey,
+            agentId: findClient.agent.agentId,
+            apiKey: findClient.agent.apiKey
+          }
+        }
       }
     });
     // if user doesn't exist throw exception
-    if (!user) throw new ForbiddenException('Credentials incorrect, please check the userId');
+    if (!user) throw new ForbiddenException('Credentials incorrect, please check the client Token or userId');
     // hit provider in order to hit provider endpoint
     const params = {
       apiKey: user.client.agent.apiKey,

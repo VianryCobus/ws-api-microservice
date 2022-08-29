@@ -10,14 +10,16 @@ import { TransactionModule } from './transaction/transaction.module';
 import { EncryptModule, GenerateUserIdModule, HitProviderModule, JwtHelperModule, LoggerHelperModule } from './utils/helper';
 import { LoggerMiddleware } from './utils/middleware';
 import { ClientModule } from './client/client.module';
-import { mysqlCobsConfig, mysqlHlConfig, ormConfig } from 'ormconfig';
+import ormConfigPostgres from 'ormconfig_postgres';
+import mysqlHlConfig from 'ormconfig_mysql_hl';
+import mysqlCobsConfig from 'ormconfig_mysql_local';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot(ormConfig),
+    TypeOrmModule.forRoot(ormConfigPostgres),
     TypeOrmModule.forRoot(mysqlHlConfig),
     // TypeOrmModule.forRoot(mysqlCobsConfig),
     // TypeOrmModule.forRoot({

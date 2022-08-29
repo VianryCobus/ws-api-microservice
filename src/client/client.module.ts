@@ -1,5 +1,5 @@
 import { BullModule } from "@nestjs/bull";
-import { Module } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Agent, Client, Config, Currency, HistoryLogin, User, Wallet } from "src/models";
@@ -7,6 +7,7 @@ import { HistoryLoginConsumer } from "src/utils/queue";
 import { ClientController } from "./client.controller";
 import { ClientService } from "./client.service";
 
+@Global()
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -34,6 +35,9 @@ import { ClientService } from "./client.service";
   providers: [
     ClientService,
     HistoryLoginConsumer,
+  ],
+  exports: [
+    ClientService,
   ],
 })
 export class ClientModule {}

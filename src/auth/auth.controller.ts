@@ -34,7 +34,7 @@ export class AuthController {
 
   @Get('signout')
   @HttpCode(200)
-  signout(@Body(new ValidationPipe()) dto: LogoutDto) {
-    return this.authService.signout(dto);
+  signout(@Body(new ValidationPipe()) dto: LogoutDto, @AuthToken() AuthToken: any) {
+    return this.authService.signout(dto,AuthToken);
   }
 }

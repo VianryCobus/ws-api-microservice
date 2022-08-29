@@ -34,4 +34,10 @@ export class UserController {
     return this.userService.passHashing(query.password);
   }
 
+  // in order to test joker
+  @Post('getbalance')
+  getbalancejoker(){
+    return this.userService.getbalanceJoker();
+  }
+
 }
