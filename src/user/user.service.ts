@@ -237,6 +237,7 @@ export class UserService {
     };
   }
 
+  // ==== JOKER ====
   async getbalanceJoker(){
     // find user balance with userId
     const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
@@ -265,5 +266,47 @@ export class UserService {
       // );
     }
     return returnData;
+  }
+
+  async placeBetJoker(req){
+    this.loggerHelperService.debugLog(
+      'Hit API tes joker : placebet',
+      req,
+    );
+  }
+
+  async settleJoker(req){
+    this.loggerHelperService.debugLog(
+      'Hit API tes joker : settle',
+      req,
+    );
+  }
+
+  async cancelBetJoker(req){
+    this.loggerHelperService.debugLog(
+      'Hit API tes joker : cancel',
+      req,
+    );
+  }
+
+  async giveJoker(req){
+    this.loggerHelperService.debugLog(
+      'Hit API tes joker : give',
+      req,
+    );
+  }
+
+  async withdrawJoker(req){
+    this.loggerHelperService.debugLog(
+      'Hit API tes joker : withdraw',
+      req,
+    );
+  }
+
+  async depositJoker(req){
+    this.loggerHelperService.debugLog(
+      'Hit API tes joker : deposit',
+      req,
+    );
   }
 }

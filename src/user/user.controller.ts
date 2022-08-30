@@ -35,9 +35,42 @@ export class UserController {
   }
 
   // in order to test joker
-  @Post('getbalance')
+  @Post('joker/getbalance')
   getbalancejoker(){
     return this.userService.getbalanceJoker();
+  }
+
+  @Post('joker/placebet')
+  betjoker(@Req() req: Request){
+    return this.userService.placeBetJoker(req);
+  }
+
+  @Post('joker/settle')
+  settleJoker(@Req() req: Request){
+    return this.userService.settleJoker(req);
+  }
+
+  @Post('joker/cancelbet')
+  cancelBetJoker(@Req() req: Request){
+    return this.userService.cancelBetJoker(req);
+  }
+
+  // bonus win & // jackpot win
+  @Post('joker/give')
+  giveJoker(@Req() req: Request){
+    return this.userService.giveJoker(req);
+  }
+
+  // withdraw
+  @Post('joker/withdraw')
+  withdrawJoker(@Req() req: Request){
+    return this.userService.withdrawJoker(req);
+  }
+
+  // deposit
+  @Post('joker/deposit')
+  depositJoker(@Req() req: Request){
+    return this.userService.depositJoker(req);
   }
 
 }
