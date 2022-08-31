@@ -269,9 +269,7 @@ export class UserService {
   }
 
   async placeBetJoker(req){
-    console.log(req);
     const data = JSON.parse(req.message);
-    console.log(data);
     const bet: number = data.txns[0].betAmount;
     let returnData;
     // find user balance with userId
@@ -313,9 +311,7 @@ export class UserService {
   }
 
   async settleJoker(req){
-    console.log(req);
     const data = JSON.parse(req.message);
-    console.log(data);
     const win: number = data.txns[0].winAmount;
     let returnData;
     // find user balance with userId
@@ -374,9 +370,7 @@ export class UserService {
   }
 
   async giveJoker(req){
-    console.log(req);
     const data = JSON.parse(req.message);
-    console.log(data);
     const win: number = data.txns[0].amount;
     let returnData;
     // find user balance with userId
@@ -412,17 +406,79 @@ export class UserService {
   }
 
   async withdrawJoker(req){
+    const data = JSON.parse(req.message);
+    const withdraw: number = data.txns[0].amount;
     let returnData;
-    returnData = {
-      status: "0000",
+    // find user balance with userId
+    const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
+    // variable declaration
+    let balancePlayer: number = balance.wallet.balance;
+    const deduct: number = balancePlayer - withdraw;
+    if(deduct < 0) {
+      returnData = {
+        status: "1018",
+        desc: "Not enough balance",
+      }
+    }
+
+    // create new wallet object
+    const updatedWallet = await this.walletsRepository.findOne({
+      where: {
+        id: balance.wallet.id,
+      }
+    });
+    updatedWallet.balance = deduct;
+
+    // save new wallet data
+    const walletSaved = await this.walletsRepository.save(updatedWallet);
+
+    if(!walletSaved) {
+      returnData = {
+        status: "9999",
+        desc: "Fail / Unknown Error",
+      }
+    } else {
+      returnData = {
+        status: "0000",
+        balance: parseFloat(Number(deduct).toFixed(3)),
+        balanceTs: null,
+      }
     }
     return returnData;
   }
 
   async depositJoker(req){
+    const data = JSON.parse(req.message);
+    const depo: number = data.txns[0].amount;
     let returnData;
-    returnData = {
-      status: "0000",
+    // find user balance with userId
+    const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
+    // variable declaration
+    let balancePlayer: number = balance.wallet.balance;
+    const add: number = Number(balancePlayer) + Number(depo);
+
+    // create new wallet object
+    const updatedWallet = await this.walletsRepository.findOne({
+      where: {
+        id: balance.wallet.id,
+      }
+    });
+    updatedWallet.balance = add;
+
+    // save new wallet data
+    const walletSaved = await this.walletsRepository.save(updatedWallet);
+    
+    if(!walletSaved) {
+      returnData = {
+        status: "9999",
+        desc: "Fail / Unknown Error",
+      }
+    } else {
+      returnData = {
+        status: "0000",
+        balance: parseFloat(Number(add).toFixed(3)),
+        balanceTs: null,
+      }
     }
     return returnData;
   }
