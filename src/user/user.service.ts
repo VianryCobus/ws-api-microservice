@@ -294,9 +294,25 @@ export class UserService {
   }
 
   async settleJoker(){
+    // find user balance with userId
+    const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
+    // variable declaration
+    let balancePlayer: Number = balance.wallet.balance;
+
+    // if user and balance does not exist throw exception
     let returnData;
-    returnData = {
-      status: "0000",
+    if (!balance) {
+      returnData = {
+        status: "0",
+        data: {},
+        message: "882",
+      }
+    } else {
+      returnData = {
+        status: "0000",
+        balance: parseFloat(Number(balance.wallet.balance).toFixed(3)),
+        balanceTs: null,
+      }
     }
     return returnData;
   }
