@@ -8,6 +8,7 @@ import { DataSource, EntityManager, Repository } from 'typeorm';
 import { BalanceDto } from './dto';
 import { HistoryBalancePlayersMysqlHL, MasterPlayersMysqlHl } from 'src/models/models_hl';
 import * as bcrypt from 'bcrypt';
+import { Request } from 'express';
 
 @Injectable()
 export class UserService {
@@ -268,45 +269,83 @@ export class UserService {
     return returnData;
   }
 
-  async placeBetJoker(req){
-    this.loggerHelperService.debugLog(
-      'Hit API tes joker : placebet',
-      req,
-    );
+  async placeBetJoker(){
+    // find user balance with userId
+    const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
+    // variable declaration
+    let balancePlayer: Number = balance.wallet.balance;
+
+    // if user and balance does not exist throw exception
+    let returnData;
+    if (!balance) {
+      returnData = {
+        status: "0",
+        data: {},
+        message: "882",
+      }
+    } else {
+      returnData = {
+        status: "0000",
+        balance: parseFloat(Number(balance.wallet.balance).toFixed(3)),
+        balanceTs: null,
+      }
+    }
+    return returnData;
   }
 
-  async settleJoker(req){
-    this.loggerHelperService.debugLog(
-      'Hit API tes joker : settle',
-      req,
-    );
+  async settleJoker(){
+    let returnData;
+    returnData = {
+      status: "0000",
+    }
+    return returnData;
   }
 
-  async cancelBetJoker(req){
-    this.loggerHelperService.debugLog(
-      'Hit API tes joker : cancel',
-      req,
-    );
+  async cancelBetJoker(){
+    // find user balance with userId
+    const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
+    // variable declaration
+    let balancePlayer: Number = balance.wallet.balance;
+
+    // if user and balance does not exist throw exception
+    let returnData;
+    if (!balance) {
+      returnData = {
+        status: "0",
+        data: {},
+        message: "882",
+      }
+    } else {
+      returnData = {
+        status: "0000",
+        balance: parseFloat(Number(balance.wallet.balance).toFixed(3)),
+        balanceTs: null,
+      }
+    }
+    return returnData;
   }
 
-  async giveJoker(req){
-    this.loggerHelperService.debugLog(
-      'Hit API tes joker : give',
-      req,
-    );
+  async giveJoker(){
+    let returnData;
+    returnData = {
+      status: "0000",
+    }
+    return returnData;
   }
 
-  async withdrawJoker(req){
-    this.loggerHelperService.debugLog(
-      'Hit API tes joker : withdraw',
-      req,
-    );
+  async withdrawJoker(){
+    let returnData;
+    returnData = {
+      status: "0000",
+    }
+    return returnData;
   }
 
-  async depositJoker(req){
-    this.loggerHelperService.debugLog(
-      'Hit API tes joker : deposit',
-      req,
-    );
+  async depositJoker(){
+    let returnData;
+    returnData = {
+      status: "0000",
+    }
+    return returnData;
   }
 }
