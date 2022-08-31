@@ -322,7 +322,7 @@ export class UserService {
     const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
     // variable declaration
     let balancePlayer: number = balance.wallet.balance;
-    const add: number = Number(balancePlayer) + win;
+    const add: number = Number(balancePlayer) + Number(win);
 
     // create new wallet object
     const updatedWallet = await this.walletsRepository.findOne({
@@ -383,7 +383,7 @@ export class UserService {
     const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
     // variable declaration
     let balancePlayer: number = balance.wallet.balance;
-    const add: number = Number(balancePlayer) + win;
+    const add: number = Number(balancePlayer) + Number(win);
 
     // create new wallet object
     const updatedWallet = await this.walletsRepository.findOne({
