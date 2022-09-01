@@ -1,13 +1,17 @@
 import { Body, Controller, Get, Post, Query, Req, ValidationPipe } from '@nestjs/common';
 import { Request } from 'express';
 import { UpdateAccountProviderDto } from 'src/auth/dto';
+import { LoggerHelperService } from 'src/utils/helper';
 import { validationSeamless } from 'src/utils/pipe';
 import { BalanceDto } from './dto';
 import { UserService } from './user.service';
 
 @Controller('provider')
 export class UserController {
-  constructor(private userService: UserService){}
+  constructor(
+    private userService: UserService,
+    private loggerHelperService: LoggerHelperService,
+  ){}
 
   @Get('bal')
   getbalance(@Query(new validationSeamless('getBalance')) dto: BalanceDto){
@@ -71,6 +75,69 @@ export class UserController {
   @Post('joker/deposit')
   depositJoker(@Req() req: Request){
     return this.userService.depositJoker(req.body);
+  }
+
+  @Post('joker/singleedp')
+  singleedp(@Req() req: Request){
+    const parse = JSON.parse(req.body.message);
+    const action = parse.action;
+    if(action === "getBalance" ){
+      this.loggerHelperService.debugLog(
+        'Req single edp joker : getBalance',
+        {
+          body: req.body,
+        }
+      );
+      return this.getbalancejoker();
+    } else if(action === "bet"){
+      this.loggerHelperService.debugLog(
+        'Req single edp joker : bet',
+        {
+          body: req.body,
+        }
+      );
+      return this.betjoker(req);
+    } else if(action === "settle"){
+      this.loggerHelperService.debugLog(
+        'Req single edp joker : settle',
+        {
+          body: req.body,
+        }
+      );
+      return this.settleJoker(req);
+    } else if(action === "cancelBet"){
+      this.loggerHelperService.debugLog(
+        'Req single edp joker : cancelBet',
+        {
+          body: req.body,
+        }
+      );
+      return this.cancelBetJoker(req);
+    } else if(action === "give"){
+      this.loggerHelperService.debugLog(
+        'Req single edp joker : give',
+        {
+          body: req.body,
+        }
+      );
+      return this.giveJoker(req);
+    } else if(action === "withdraw"){
+      this.loggerHelperService.debugLog(
+        'Req single edp joker : withdraw',
+        {
+          body: req.body,
+        }
+      );
+      return this.withdrawJoker(req);
+    } else if(action === "deposit"){
+      this.loggerHelperService.debugLog(
+        'Req single edp joker : deposit',
+        {
+          body: req.body,
+        }
+      );
+      return this.depositJoker(req);
+    }
   }
 
 }

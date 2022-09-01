@@ -62,6 +62,7 @@ export class AppModule implements NestModule {
         .exclude(
           { path: 'api/provider/bal', method: RequestMethod.GET },
           { path: 'api/provider/joker/getbalance', method: RequestMethod.POST },
+          { path: 'api/provider/joker/singleedp', method: RequestMethod.POST },
         )
         .forRoutes('provider','v1/client')
   }
