@@ -40,8 +40,8 @@ export class UserController {
 
   // in order to test joker
   @Post('joker/getbalance')
-  getbalancejoker(){
-    return this.userService.getbalanceJoker();
+  getbalancejoker(@Req() req: Request){
+    return this.userService.getbalanceJoker(req.body);
   }
 
   @Post('joker/placebet')
@@ -88,7 +88,7 @@ export class UserController {
           body: req.body,
         }
       );
-      return this.getbalancejoker();
+      return this.getbalancejoker(req);
     } else if(action === "bet"){
       this.loggerHelperService.debugLog(
         'Req single edp joker : bet',

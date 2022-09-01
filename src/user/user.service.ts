@@ -239,31 +239,28 @@ export class UserService {
   }
 
   // ==== JOKER ====
-  async getbalanceJoker(){
-    // find user balance with userId
-    const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
-    // variable declaration
-    let balancePlayer: Number = balance.wallet.balance;
-
-    // if user and balance does not exist throw exception
+  async getbalanceJoker(req){
     let returnData;
+    const data = JSON.parse(req.message);
+    const userId: string = data.userId;
+    // find user balance with userId
+    const balance = await this.getOneUserByAgentUserId(userId);
+    
     if (!balance) {
       returnData = {
         status: "9999",
         desc: "Fail / Unknown Error",
       }
-    } else {
-      returnData = {
-        status: "0000",
-        userId: "wsidrtes01",
-        balance: parseFloat(Number(balance.wallet.balance).toFixed(3)),
-        balanceTs: null,
-      }
-      // this.logger.debug({message: 'Return API get balance',params: returnData,});
-      // this.loggerHelperService.debugLog(
-      //   'Return API get balance',
-      //   returnData,
-      // );
+      return returnData;
+    }
+    // variable declaration
+    let balancePlayer: Number = balance.wallet.balance;
+
+    returnData = {
+      status: "0000",
+      userId: "wsidrtes01",
+      balance: parseFloat(Number(balancePlayer).toFixed(3)),
+      balanceTs: null,
     }
     return returnData;
   }
