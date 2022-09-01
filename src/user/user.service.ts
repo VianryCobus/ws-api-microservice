@@ -248,8 +248,8 @@ export class UserService {
     
     if (!balance) {
       returnData = {
-        status: "9999",
-        desc: "Fail / Unknown Error",
+        status: "1000",
+        desc: "Invalid user id",
       }
       return returnData;
     }
@@ -267,10 +267,18 @@ export class UserService {
 
   async placeBetJoker(req){
     const data = JSON.parse(req.message);
+    const userId: string = data.txns[0].userId;
     const bet: number = data.txns[0].betAmount;
     let returnData;
     // find user balance with userId
-    const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
+    const balance = await this.getOneUserByAgentUserId(userId);
+    if (!balance) {
+      returnData = {
+        status: "1000",
+        desc: "Invalid user id",
+      }
+      return returnData;
+    }
     // variable declaration
     let balancePlayer: number = balance.wallet.balance;
     const deduct: number = balancePlayer - bet;
@@ -309,10 +317,18 @@ export class UserService {
 
   async settleJoker(req){
     const data = JSON.parse(req.message);
+    const userId: string = data.txns[0].userId;
     const win: number = data.txns[0].winAmount;
     let returnData;
     // find user balance with userId
-    const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
+    const balance = await this.getOneUserByAgentUserId(userId);
+    if (!balance) {
+      returnData = {
+        status: "1000",
+        desc: "Invalid user id",
+      }
+      return returnData;
+    }
     // variable declaration
     let balancePlayer: number = balance.wallet.balance;
     const add: number = Number(balancePlayer) + Number(win);
@@ -343,14 +359,23 @@ export class UserService {
     return returnData;
   }
 
-  async cancelBetJoker(){
+  async cancelBetJoker(req){
+    const data = JSON.parse(req.message);
+    const userId: string = data.txns[0].userId;
+    let returnData;
     // find user balance with userId
-    const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
+    const balance = await this.getOneUserByAgentUserId(userId);
+    if (!balance) {
+      returnData = {
+        status: "1000",
+        desc: "Invalid user id",
+      }
+      return returnData;
+    }
     // variable declaration
     let balancePlayer: Number = balance.wallet.balance;
 
     // if user and balance does not exist throw exception
-    let returnData;
     if (!balance) {
       returnData = {
         status: "9999",
@@ -359,7 +384,7 @@ export class UserService {
     } else {
       returnData = {
         status: "0000",
-        balance: parseFloat(Number(balance.wallet.balance).toFixed(3)),
+        balance: parseFloat(Number(balancePlayer).toFixed(3)),
         balanceTs: null,
       }
     }
@@ -368,10 +393,18 @@ export class UserService {
 
   async giveJoker(req){
     const data = JSON.parse(req.message);
+    const userId: string = data.txns[0].userId;
     const win: number = data.txns[0].amount;
     let returnData;
     // find user balance with userId
-    const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
+    const balance = await this.getOneUserByAgentUserId(userId);
+    if (!balance) {
+      returnData = {
+        status: "1000",
+        desc: "Invalid user id",
+      }
+      return returnData;
+    }
     // variable declaration
     let balancePlayer: number = balance.wallet.balance;
     const add: number = Number(balancePlayer) + Number(win);
@@ -404,10 +437,18 @@ export class UserService {
 
   async withdrawJoker(req){
     const data = JSON.parse(req.message);
+    const userId: string = data.txns[0].userId;
     const withdraw: number = data.txns[0].amount;
     let returnData;
     // find user balance with userId
-    const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
+    const balance = await this.getOneUserByAgentUserId(userId);
+    if (!balance) {
+      returnData = {
+        status: "1000",
+        desc: "Invalid user id",
+      }
+      return returnData;
+    }
     // variable declaration
     let balancePlayer: number = balance.wallet.balance;
     const deduct: number = balancePlayer - withdraw;
@@ -446,10 +487,18 @@ export class UserService {
 
   async depositJoker(req){
     const data = JSON.parse(req.message);
+    const userId: string = data.txns[0].userId;
     const depo: number = data.txns[0].amount;
     let returnData;
     // find user balance with userId
-    const balance = await this.getOneUserByAgentUserId('UATAAMKHTEST1');
+    const balance = await this.getOneUserByAgentUserId(userId);
+    if (!balance) {
+      returnData = {
+        status: "1000",
+        desc: "Invalid user id",
+      }
+      return returnData;
+    }
     // variable declaration
     let balancePlayer: number = balance.wallet.balance;
     const add: number = Number(balancePlayer) + Number(depo);

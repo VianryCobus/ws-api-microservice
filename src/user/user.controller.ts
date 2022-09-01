@@ -56,7 +56,7 @@ export class UserController {
 
   @Post('joker/cancelbet')
   cancelBetJoker(@Req() req: Request){
-    return this.userService.cancelBetJoker();
+    return this.userService.cancelBetJoker(req.body);
   }
 
   // bonus win & // jackpot win
