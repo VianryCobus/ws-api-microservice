@@ -148,18 +148,18 @@
                         <span class="font-green">
                           <%= e.side.substr(0,1).toUpperCase() %>
                           *
-                          <%= e.side.substr(1,e.side.length).toUpperCase() %>
+                          <%= e.side.substr(2,e.side.length).toUpperCase() %>
                         </span>
                       <% } else if (e.transactions[0].winloss === 0 || e.transactions[0].winloss === 4) { %>
                         <span class="font-red">
                           <%= e.side.substr(0,1).toUpperCase() %>
                           *
-                          <%= e.side.substr(1,e.side.length).toUpperCase() %>
+                          <%= e.side.substr(2,e.side.length).toUpperCase() %>
                         </span>
                       <% } else { %>
                         <%= e.side.substr(0,1).toUpperCase() %>
                         *
-                        <%= e.side.substr(1,e.side.length).toUpperCase() %>
+                        <%= e.side.substr(2,e.side.length).toUpperCase() %>
                       <% } %>
                     <% } else if (e.game === "TG") { %>
                       <% if (e.transactions[0].winloss === 1 || e.transactions[0].winloss === 3) { %>
