@@ -998,10 +998,16 @@ export class TransactionService {
       },
       where: {
         ticketBetId: ticketBetId,
+        // transactions: {
+        //   ep: 'betresult',
+        // }
+      },
+      order:{
         transactions: {
-          ep: 'betresult',
-        }
-      }
+          updatedAt: "DESC",
+        },
+      },
+      take: 1,
     })
     return detailTrx;
   }

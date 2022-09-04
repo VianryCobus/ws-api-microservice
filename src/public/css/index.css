@@ -18,6 +18,10 @@
   color: rgb(240, 68, 25);
 }
 
+.font-green {
+  color: #008000;
+}
+
 .images-small {
   width: 425px;
   height: auto;

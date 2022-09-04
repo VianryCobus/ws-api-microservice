@@ -63,7 +63,7 @@
                       </span>
                       <br>
                       <span class="font-blue font-xs-content">
-                        <%= e.sport %> 
+                        <%= (e.ticketBetId.substr(0,6) === "PARLAY") ? "Mix Parlay" : e.sport %>
                       </span>
                       <br>
                       <%= e.tDate %> 
@@ -78,12 +78,134 @@
                           <span class="font-blue"><%= e.home %> </span>
                         <% } %>
                       <% } else { %>
-                        <%= e.away %> 
+                        <% if (e.info.substr(0,1) === "-") { %>
+                          <span class="font-red"><%= e.away %> </span>
+                        <% } else { %>
+                          <span class="font-blue"><%= e.away %> </span>
+                        <% } %>
+                      <% } %>
+                      <%= Number(e.info).toFixed(2) %> 
+                    <% } else if (e.game === "FGLG") { %>
+                      <span class="font-green">
+                        <% if (e.side.substr(0,1) === "h") { %>
+                          <%= e.home %> 
+                        <% } else { %>
+                          <%= e.away %> 
+                        <% } %>
+                      </span>
+                      -
+                      <span class="font-green">
+                        <% if (e.side.substr(1,1) === "f") { %>
+                          First Goal
+                        <% } else { %>
+                          Last Goal
+                        <% } %>
+                      </span>
+                    <% } else if (e.game === "1X2") { %>
+                      <% if (e.transactions[0].winloss === 1 || e.transactions[0].winloss === 3) { %>
+                        <span class="font-green">
+                          <% if (e.side === "h") { %>
+                            <%= e.home %>
+                          <% } else { %>
+                            <%= e.away %>  
+                          <% } %>
+                        </span>
+                      <% } else if (e.transactions[0].winloss === 0 || e.transactions[0].winloss === 4) { %>
+                        <span class="font-red">
+                          <% if (e.side === "h") { %>
+                            <%= e.home %>
+                          <% } else { %>
+                            <%= e.away %>  
+                          <% } %>
+                        </span>
+                      <% } else { %>
+                        <% if (e.side === "h") { %>
+                          <%= e.home %>
+                        <% } else { %>
+                          <%= e.away %>  
+                        <% } %>
+                      <% } %>
+                    <% } else if (e.game === "HTFT") { %>
+                      <% if (e.transactions[0].winloss === 1 || e.transactions[0].winloss === 3) { %>
+                        <span class="font-green">
+                          <%= e.side.substr(0,1).toUpperCase() %>
+                          /
+                          <%= e.side.substr(1,e.side.length).toUpperCase() %>
+                        </span>
+                      <% } else if (e.transactions[0].winloss === 0 || e.transactions[0].winloss === 4) { %>
+                        <span class="font-red">
+                          <%= e.side.substr(0,1).toUpperCase() %>
+                          /
+                          <%= e.side.substr(1,e.side.length).toUpperCase() %>
+                        </span>
+                      <% } else { %>
+                        <%= e.side.substr(0,1).toUpperCase() %>
+                        /
+                        <%= e.side.substr(1,e.side.length).toUpperCase() %>
+                      <% } %>
+                    <% } else if (e.game === "CS") { %>
+                      <% if (e.transactions[0].winloss === 1 || e.transactions[0].winloss === 3) { %>
+                        <span class="font-green">
+                          <%= e.side.substr(0,1).toUpperCase() %>
+                          *
+                          <%= e.side.substr(1,e.side.length).toUpperCase() %>
+                        </span>
+                      <% } else if (e.transactions[0].winloss === 0 || e.transactions[0].winloss === 4) { %>
+                        <span class="font-red">
+                          <%= e.side.substr(0,1).toUpperCase() %>
+                          *
+                          <%= e.side.substr(1,e.side.length).toUpperCase() %>
+                        </span>
+                      <% } else { %>
+                        <%= e.side.substr(0,1).toUpperCase() %>
+                        *
+                        <%= e.side.substr(1,e.side.length).toUpperCase() %>
+                      <% } %>
+                    <% } else if (e.game === "TG") { %>
+                      <% if (e.transactions[0].winloss === 1 || e.transactions[0].winloss === 3) { %>
+                        <span class="font-green">
+                          <%= e.side.substr(0,1).toUpperCase() %>
+                          -
+                          <%= e.side.substr(1,e.side.length).toUpperCase() %>
+                        </span>
+                      <% } else if (e.transactions[0].winloss === 0 || e.transactions[0].winloss === 4) { %>
+                        <span class="font-red">
+                          <%= e.side.substr(0,1).toUpperCase() %>
+                          -
+                          <%= e.side.substr(1,e.side.length).toUpperCase() %>
+                        </span>
+                      <% } else { %>
+                        <%= e.side.substr(0,1).toUpperCase() %>
+                        -
+                        <%= e.side.substr(1,e.side.length).toUpperCase() %>
+                      <% } %>
+                    <% } else if (e.game === "OUT") { %>
+                      <% if (e.transactions[0].winloss === 1 || e.transactions[0].winloss === 3) { %>
+                        <span class="font-green">
+                          <%= e.side %>
+                        </span>
+                        <br>
+                        <span class="font-xs-content">
+                          <%= e.league %> 
+                        </span>
+                      <% } else if (e.transactions[0].winloss === 0 || e.transactions[0].winloss === 4) { %>
+                        <span class="font-red">
+                          <%= e.side %>
+                        </span>
+                        <br>
+                        <span class="font-xs-content">
+                          <%= e.league %> 
+                        </span>
+                      <% } else { %>
+                        <%= e.side %>
+                        <br>
+                        <span class="font-xs-content">
+                          <%= e.league %> 
+                        </span>
                       <% } %>
                     <% } else { %> 
                       Nothing
                     <% } %> 
-                    <%= Number(e.info).toFixed(2) %> 
                     <br>
                     <b><i>
                       <% if (e.game === "HDP") { %>
@@ -92,6 +214,18 @@
                         OVER UNDER
                       <% } else if (e.game === "PARLAY") { %>
                         MIX PARLAY
+                      <% } else if (e.game === "FGLG") { %>
+                        FIRST GOAL / LAST GOAL
+                      <% } else if (e.game === "HTFT") { %>
+                        HALF TIME / FULL TIME
+                      <% } else if (e.game === "CS") { %>
+                        CORRECT SCORE
+                      <% } else if (e.game === "TG") { %>
+                        TOTAL GOAL
+                      <% } else if (e.game === "1X2") { %>
+                        1 X 2
+                      <% } else if (e.game === "OUT") { %>
+                        OUTRIGHT
                       <% } else { %>
                         <%= e.game %> 
                       <% } %>
