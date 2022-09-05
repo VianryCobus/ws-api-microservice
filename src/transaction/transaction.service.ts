@@ -1007,7 +1007,7 @@ export class TransactionService {
           updatedAt: "DESC",
         },
       },
-      take: 1,
+      // take: 1,
     })
     return detailTrx;
   }

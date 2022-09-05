@@ -66,7 +66,7 @@
                         <%= (e.ticketBetId.substr(0,6) === "PARLAY") ? "Mix Parlay" : e.sport %>
                       </span>
                       <br>
-                      <%= e.tDate %> 
+                      <%= (e.ticketBetId.substr(0,6) !== "PARLAY") ? e.tDate : e.kDate %>
                     </center>
                   </td>
                   <td class="text-end align-middle">
@@ -240,7 +240,7 @@
                     </span>
                     <br>
                     <span class="font-xss-content">
-                      <%= e.league_en %> @ <%= e.sDate %> 
+                      <%= e.league_en %> @ <%= (e.ticketBetId.substr(0,6) !== "PARLAY") ? e.sDate : e.kDate %>
                     </span>
                   </td>
                   <td class="align-middle text-end">
@@ -254,39 +254,55 @@
                     <b><i> <%= e.bAmt %> </i></b>
                     <br>
                     <span class="font-xss-content">
-                      <%= Number(e.commision).toFixed(2) %> %
+                      <%= (e.ticketBetId.substr(0,6) !== "PARLAY") ? `${Number(e.commision).toFixed(2)} %` : null %>
                     </span>
                   </td>
                   <td class="align-middle text-end">
                     <b><i> <%= e.wAmt %> </i></b>
                     <br>
                     <span class="font-xss-content">
-                      <%= Number(e.commision).toFixed(2) %> %
+                      <%= (e.ticketBetId.substr(0,6) !== "PARLAY") ? `${Number(e.commision).toFixed(2)} %` : null %>
                     </span>
                   </td>
                   <td class="align-middle text-end">
                     <center>
                       <b><i>
-                        <% if (e.transactions[0].winloss === 1) { %>
-                          WON
-                        <% } else if (e.transactions[0].winloss === 0) { %>
-                          LOSE
-                        <% } else if (e.transactions[0].winloss === 2) { %>
-                          DRAW
-                        <% } else if (e.transactions[0].winloss === 3) { %>
-                          WIN HALF
-                        <% } else if (e.transactions[0].winloss === 4) { %>
-                          LOSE HALF
-                        <% } else { %>
-                          WAITING RESULT
+                        <% if (e.ticketBetId.substr(0,6) !== "PARLAY") { %>
+                          <% if (e.transactions[0].winloss === 1) { %>
+                            <span class="font-green">WON</span>
+                          <% } else if (e.transactions[0].winloss === 0) { %>
+                            <span class="font-red">LOSE</span>
+                          <% } else if (e.transactions[0].winloss === 2) { %>
+                            <span class="font-blue">DRAW</span>
+                          <% } else if (e.transactions[0].winloss === 3) { %>
+                            <span class="font-green">WON HALF</span>
+                          <% } else if (e.transactions[0].winloss === 4) { %>
+                            <span class="font-red">LOSE HALF</span>
+                          <% } else { %>
+                            WAITING RESULT
+                          <% } %>
+                        <% } else if (e.ticketBetId.substr(0,6) === "PARLAY") { %>
+                          <% if (e.tresult === "1") { %>
+                            <span class="font-green">WON</span>
+                          <% } else if (e.tresult === "0") { %>
+                            <span class="font-red">LOSE</span>
+                          <% } else if (e.tresult === "2") { %>
+                            <span class="font-blue">DRAW</span>
+                          <% } else if (e.tresult === "3") { %>
+                            <span class="font-green">WON HALF</span>
+                          <% } else if (e.tresult === "4") { %>
+                            <span class="font-red">LOSE HALF</span>
+                          <% } else { %>
+                            WAITING RESULT
+                          <% } %>
                         <% } %>
                       </i></b>
                       <br>
                       FT <%= (e.ftscore) ? e.ftscore : null %> 
                       <br>
-                      <%= (e.htscore) ? "HT "+e.htscore+"<br>" : null %> 
+                      <%- (e.fhscore) ? "HT "+e.fhscore+"<br>" : null %> 
                       <span class="font-xss-content font-red">
-                        <%= e.pDate %> %
+                        <%= e.pDate %>
                       </span>
                   </center>
                   </td>
@@ -299,6 +315,117 @@
               <% }) %>
             </tbody>
           </table>
+          
+          <% if (ticketBetId[0].transactions[0].ticketBetId.substr(0,6) === "PARLAY"){ %>
+            <table class="table table-sm table-bordered font-sm-table table-secondary" style="width: 300px">
+              <tr>
+                <td colspan="3">
+                  <center>
+                    <b>
+                      RESULT MIX PARLAY
+                    </b>
+                  </center>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <b>
+                    Bet Amount
+                  </b>
+                </td>
+                <td>
+                  <center>
+                    <b>
+                      :
+                    </b>
+                  </center>
+                </td>
+                <td>
+                  <center>
+                    <b>
+                      <%= Number(ticketBetId[0].transactions[0].bAmt).toFixed(2) %>
+                    </b>
+                  </center>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <b>
+                    Odds
+                  </b>
+                </td>
+                <td>
+                  <center>
+                    <b>
+                      :
+                    </b>
+                  </center>
+                </td>
+                <td>
+                  <center>
+                    <b>
+                      <%= Number(ticketBetId[0].transactions[0].odds).toFixed(2) %>
+                    </b>
+                  </center>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <b>
+                    Est. /Payout
+                  </b>
+                </td>
+                <td>
+                  <center>
+                    <b>
+                      :
+                    </b>
+                  </center>
+                </td>
+                <td>
+                  <center>
+                    <b>
+                      <%= Number(ticketBetId[0].transactions[0].bAmt * ticketBetId[0].transactions[0].odds).toFixed(2) %>
+                    </b>
+                  </center>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <b>
+                    Status
+                  </b>
+                </td>
+                <td>
+                  <center>
+                    <b>
+                      :
+                    </b>
+                  </center>
+                </td>
+                <td>
+                  <center>
+                    <b>
+                      <% if (ticketBetId[0].transactions[0].winloss === 1) { %>
+                        <span class="font-green">WON</span>
+                      <% } else if (ticketBetId[0].transactions[0].winloss === 0) { %>
+                        <span class="font-red">LOSE</span>
+                      <% } else if (ticketBetId[0].transactions[0].winloss === 2) { %>
+                        <span class="font-blue">DRAW</span>
+                      <% } else if (ticketBetId[0].transactions[0].winloss === 3) { %>
+                        <span class="font-green">WON HALF</span>
+                      <% } else if (ticketBetId[0].transactions[0].winloss === 4) { %>
+                        <span class="font-red">LOSE HALF</span>
+                      <% } else { %>
+                        WAITING RESULT
+                      <% } %>
+                    </b>
+                  </center>
+                </td>
+              </tr>
+            </table>
+          <% } %>
+          
         </div>
       </div>
     </div>
