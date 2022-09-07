@@ -4,7 +4,7 @@ import { AuthToken } from "src/utils/decorators";
 import { ClientExceptionFilter } from "src/utils/exception";
 import { TokenGuard } from "src/utils/guard";
 import { AuthService } from "./auth.service";
-import { AuthDto, LogoutDto, SignUpClientDto, SignUpDto } from "./dto";
+import { AuthDto, LogoutDto, SignUpClientDto, SignUpClientSeamlessDto, SignUpDto } from "./dto";
 
 @Controller('auth')
 export class AuthController {
@@ -31,6 +31,13 @@ export class AuthController {
   signupClient(@Body(new ValidationPipe()) dto: SignUpClientDto, @AuthToken() AuthToken: any) {
     return this.authService.signupClient(dto,AuthToken);
   }
+
+  @Post('signupClientSeamless')
+  @HttpCode(200)
+  signupClientSeamless(@Body(new ValidationPipe()) dto: SignUpClientSeamlessDto, @AuthToken() AuthToken: any) {
+    return "signupClientSeamless";
+  }
+
 
   @Get('signout')
   @HttpCode(200)
