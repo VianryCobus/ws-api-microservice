@@ -84,7 +84,11 @@
                           <span class="font-blue"><%= e.away %> </span>
                         <% } %>
                       <% } %>
-                      <%= Number(e.info).toFixed(2) %> 
+                      <% if (isNaN(Number(e.info).toFixed(2))) { %>
+                        <%= e.info %>
+                      <% } else { %>
+                        <%= Number(e.info).toFixed(2) %>
+                      <% } %>
                     <% } else if (e.game === "FGLG") { %>
                       <span class="font-green">
                         <% if (e.side.substr(0,1) === "h") { %>
@@ -240,7 +244,7 @@
                     </span>
                     <br>
                     <span class="font-xss-content">
-                      <%= e.league_en %> @ <%= (e.ticketBetId.substr(0,6) !== "PARLAY") ? e.sDate : e.kDate %>
+                      <%= e.league_en %> @ <%= (e.ticketBetId.substr(0,6) !== "PARLAY") ? e.kDate : e.kDate %>
                     </span>
                   </td>
                   <td class="align-middle text-end">
@@ -298,7 +302,7 @@
                         <% } %>
                       </i></b>
                       <br>
-                      FT <%= (e.ftscore) ? e.ftscore : null %> 
+                      <%- (e.ftscore) ? "FT "+e.ftscore+"<br>" : null %> 
                       <br>
                       <%- (e.fhscore) ? "HT "+e.fhscore+"<br>" : null %> 
                       <span class="font-xss-content font-red">
