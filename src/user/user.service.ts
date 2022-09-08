@@ -48,16 +48,6 @@ export class UserService {
     // variable declaration
     let balancePlayer: Number = balance.wallet.balance;
 
-    if(balance.client.username == "HL" && balance.mode === 0) {
-      const balanceHl = await this.getbalancehl(balance.username);
-      return {
-        status: "1",
-        data: {
-          CurrentCredit: parseFloat(Number(balanceHl.balance).toFixed(4)),
-        },
-        message: null,
-      };
-    }
     // if user and balance does not exist throw exception
     let returnData;
     if (!balance) {
@@ -71,10 +61,21 @@ export class UserService {
         dto,
       );
     } else {
+      if(balance.client.username == "HL" && balance.mode === 0) {
+        const balanceHl = await this.getbalancehl(balance.username);
+        return {
+          status: "1",
+          data: {
+            CurrentCredit: parseFloat(Number(balanceHl.balance).toFixed(4)),
+          },
+          message: null,
+        };
+      }
+
       returnData = {
         status: "1",
         data: {
-          CurrentCredit: parseFloat(Number(balance.wallet.balance).toFixed(4)),
+          CurrentCredit: parseFloat(Number(balancePlayer).toFixed(4)),
         },
         message: null,
       }
