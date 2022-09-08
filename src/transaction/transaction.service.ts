@@ -161,7 +161,7 @@ export class TransactionService {
         apiKey: user.client.agent.apiKey,
       },{
         removeOnComplete: true,
-        delay: 5000,
+        delay: 15000,
       });
 
       if(user.client.username === "HL") {
@@ -402,7 +402,7 @@ export class TransactionService {
                 apiKey: user.client.agent.apiKey,
               },{
                 removeOnComplete: true,
-                delay: 5000,
+                delay: 15000,
               });
 
               // if user from client Happy Luck
