@@ -45,9 +45,6 @@ export class UserService {
 
     // find user balance with userId
     const balance = await this.getOneUserByAgentUserId(dto.userId);
-    // variable declaration
-    let balancePlayer: Number = balance.wallet.balance;
-
     // if user and balance does not exist throw exception
     let returnData;
     if (!balance) {
@@ -61,6 +58,8 @@ export class UserService {
         dto,
       );
     } else {
+      // variable declaration
+      let balancePlayer: Number = balance.wallet.balance;
       if(balance.client.username == "HL" && balance.mode === 0) {
         const balanceHl = await this.getbalancehl(balance.username);
         return {
