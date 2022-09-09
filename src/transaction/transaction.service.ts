@@ -161,7 +161,7 @@ export class TransactionService {
         apiKey: user.client.agent.apiKey,
       },{
         removeOnComplete: true,
-        delay: 15000,
+        delay: 25000,
       });
 
       if(user.client.username === "HL") {
@@ -196,7 +196,7 @@ export class TransactionService {
           win: 0,
           lose: Math.abs(dto.payout) * ratioCurr,
           payout: 0,
-          detail: `Status: Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1100,height=400')">Detail</button>`,
+          detail: `Status: Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1100,height=550')">Detail</button>`,
           game_code: gameCode.gameId,
           balance: checkBalance.afterBalance * ratioCurr,
         },{
@@ -402,7 +402,7 @@ export class TransactionService {
                 apiKey: user.client.agent.apiKey,
               },{
                 removeOnComplete: true,
-                delay: 15000,
+                delay: 25000,
               });
 
               // if user from client Happy Luck
@@ -434,13 +434,20 @@ export class TransactionService {
                 let gamelogLose: number = e.creditDeducted;
                 switch(e.winloss){
                   case 1:
+                    gamelogWin = Math.abs(e.payout - e.creditDeducted);
+                    gamelogLose = 0;
                   case 2:
+                    gamelogWin = 0;
+                    gamelogLose = 0;
                   case 3:
+                    gamelogWin = Math.abs(e.payout - e.creditDeducted);
+                    gamelogLose = 0;
+                    break;
                   case 4:
-                    gamelogWin = e.payout - e.creditDeducted;
+                    gamelogLose = Math.abs(e.payout - e.creditDeducted);
                     break;
                   case 0:
-                    gamelogLose = e.creditDeducted
+                    gamelogLose = e.creditDeducted;
                     break;
                   default:
                     gamelogWin = 0;
@@ -456,7 +463,7 @@ export class TransactionService {
                   win: gamelogWin * ratioCurr,
                   lose: gamelogLose * ratioCurr,
                   payout: Math.abs(e.payout) * ratioCurr,
-                  detail: `Status: Bet Result <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1100,height=400')">Detail</button>`,
+                  detail: `Status: Bet Result <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1100,height=550')">Detail</button>`,
                   game_code: gameCode.gameId,
                   balance: checkBalance.afterBalance * ratioCurr,
                 },{
@@ -666,21 +673,22 @@ export class TransactionService {
 
                 // determine win and lose
                 let gamelogWin: number = 0;
-                let gamelogLose: number = e.creditDeducted;
-                switch(e.winloss){
-                  case 1:
-                  case 2:
-                  case 3:
-                  case 4:
-                    gamelogWin = e.payout - e.creditDeducted;
-                    break;
-                  case 0:
-                    gamelogLose = e.creditDeducted
-                    break;
-                  default:
-                    gamelogWin = 0;
-                    gamelogLose = e.creditDeducted;
-                }
+                let gamelogLose: number = 0;
+                // switch(e.winloss){
+                //   case 1:
+                //   case 2:
+                //   case 3:
+                //   case 4:
+                //     gamelogWin = 0;
+                //     gamelogLose = 0;
+                //     break;
+                //   case 0:
+                //     gamelogLose = 0;
+                //     break;
+                //   default:
+                //     gamelogWin = 0;
+                //     gamelogLose = 0;
+                // }
 
                 // add to queue in order to push data to gamelog Happy Luck client
                 await this.queue.add('hpl-gamelog-job',{
@@ -691,7 +699,7 @@ export class TransactionService {
                   win: gamelogWin * ratioCurr,
                   lose: gamelogLose * ratioCurr,
                   payout: Math.abs(e.payout) * ratioCurr,
-                  detail: `Status: Rollback Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1100,height=400')">Detail</button>`,
+                  detail: `Status: Rollback Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1100,height=550')">Detail</button>`,
                   game_code: gameCode.gameId,
                   balance: checkBalance.afterBalance * ratioCurr,
                 },{
@@ -907,7 +915,7 @@ export class TransactionService {
                   win: 0,
                   lose: 0,
                   payout: Math.abs(e.payout) * ratioCurr,
-                  detail: `Status: Cancel Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1100,height=400')">Detail</button>`,
+                  detail: `Status: Cancel Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1100,height=550')">Detail</button>`,
                   game_code: gameCode.gameId,
                   balance: checkBalance.afterBalance * ratioCurr,
                 },{
