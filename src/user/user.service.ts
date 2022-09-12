@@ -258,7 +258,7 @@ export class UserService {
 
     returnData = {
       status: "0000",
-      userId: "wsidrtes01",
+      userId,
       balance: parseFloat(Number(balancePlayer).toFixed(3)),
       balanceTs: null,
     }

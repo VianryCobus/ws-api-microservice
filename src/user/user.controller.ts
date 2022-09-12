@@ -77,7 +77,7 @@ export class UserController {
     return this.userService.depositJoker(req.body);
   }
 
-  @Post('joker/singleedp')
+  @Post('joker')
   singleedp(@Req() req: Request){
     const parse = JSON.parse(req.body.message);
     const action = parse.action;
