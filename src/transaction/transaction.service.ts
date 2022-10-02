@@ -54,6 +54,7 @@ export class TransactionService {
       }
       // find the ratio currency
       const ratioCurr = this.getCurrencyRatio(user.client.agent.currency.ratio);
+      const currCode = user.client.agent.currency.code;
       let beforeBalance: number;
       let balanceClientHl: any;
       if (user.client.username === "HL"){
@@ -199,6 +200,7 @@ export class TransactionService {
           detail: `Status: Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1100,height=550')">Detail</button>`,
           game_code: gameCode.gameId,
           balance: checkBalance.afterBalance * ratioCurr,
+          curr_code: currCode,
         },{
           removeOnComplete: true,
         });
@@ -297,6 +299,7 @@ export class TransactionService {
           } else {
             // find the ratio currency
             const ratioCurr = this.getCurrencyRatio(user.client.agent.currency.ratio);
+            const currCode = user.client.agent.currency.code;
             let beforeBalance: number;
             let balanceClientHl: any;
             if(user.client.username === "HL"){
@@ -466,6 +469,7 @@ export class TransactionService {
                   detail: `Status: Bet Result <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1100,height=550')">Detail</button>`,
                   game_code: gameCode.gameId,
                   balance: checkBalance.afterBalance * ratioCurr,
+                  curr_code: currCode,
                 },{
                   removeOnComplete: true,
                 });
@@ -550,6 +554,7 @@ export class TransactionService {
           } else {
             // find the ratio currency
             const ratioCurr = this.getCurrencyRatio(user.client.agent.currency.ratio);
+            const currCode = user.client.agent.currency.code;
             let beforeBalance: number;
             let balanceClientHl: any;
             if(user.client.username === "HL"){
@@ -702,6 +707,7 @@ export class TransactionService {
                   detail: `Status: Rollback Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1100,height=550')">Detail</button>`,
                   game_code: gameCode.gameId,
                   balance: checkBalance.afterBalance * ratioCurr,
+                  curr_code: currCode,
                 },{
                   removeOnComplete: true,
                 });
@@ -786,6 +792,7 @@ export class TransactionService {
           } else {
             // find the ratio currency
             const ratioCurr = this.getCurrencyRatio(user.client.agent.currency.ratio);
+            const currCode = user.client.agent.currency.code;
             let beforeBalance: number;
             let balanceClientHl: any;
             if(user.client.username === "HL"){
@@ -918,6 +925,7 @@ export class TransactionService {
                   detail: `Status: Cancel Bet <button class="btn btn-block btn-success" onclick="window.open('${this.config.get('WS_SPORT_CC_URL')}/api/provider/getDetailTrx?ticketBetId=${buildJwtTrxDetail.access_token}','_blank','toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=100,width=1100,height=550')">Detail</button>`,
                   game_code: gameCode.gameId,
                   balance: checkBalance.afterBalance * ratioCurr,
+                  curr_code: currCode,
                 },{
                   removeOnComplete: true,
                 });

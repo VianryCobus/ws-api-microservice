@@ -27,8 +27,14 @@ export class HappyLuckPushGamelogConsumer {
       game_code: val.game_code,
       balance: val.balance,
     }
-    // const push gamelog
-    const push = await this.hitProviderService.pushGamelogHl(params);
+    let push;
+    if(val.curr_code === "MMK000"){
+      // const push gamelog MMK000
+      push = await this.hitProviderService.pushGamelogHlMmk000(params);
+    } else if(val.curr_code === "CNY"){
+      // const push gamelog CNY
+      push = await this.hitProviderService.pushGamelogHlCny(params);
+    }
     if(push.status){
       this.loggerHelperService.debugLog(
         `log save action (add) Happy Luck Push Gamelog job from queue redis key : ws-queue / hpl-trans-job`,

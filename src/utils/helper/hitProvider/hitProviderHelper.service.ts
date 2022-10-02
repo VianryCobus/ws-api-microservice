@@ -227,21 +227,49 @@ export class HitProviderService {
     return responseProvider;
   }
 
-  // push gamelog (HL Client)
-  async pushGamelogHl(params) {
+  // push gamelog MMK (HL Client)
+  async pushGamelogHlMmk000(params) {
     this.loggerHelperService.debugLog(
-      'Hit Endpoint Gamelog Client (HL)',
+      'Hit Endpoint Gamelog MMK Client (HL)',
       {
-        Url: process.env.GAMELOG_URL,
+        Url: process.env.GAMELOG_URL_MMK,
         params,
       }
     );
-    const pushGamelog = await axios.post(process.env.GAMELOG_URL,params);
+    const pushGamelog = await axios.post(process.env.GAMELOG_URL_MMK,params);
     if(pushGamelog.data.status == "success"){
       this.loggerHelperService.debugLog(
-        'Return Hit Endpoint Gamelog Client (HL)',
+        'Return Hit Endpoint Gamelog MMK Client (HL)',
         {
-          Url: process.env.GAMELOG_URL,
+          Url: process.env.GAMELOG_URL_MMK,
+          return: pushGamelog.data,
+        }
+      );
+      return {
+        status: true,
+      }
+    } else {
+      return {
+        status: false,
+      }
+    }
+  }
+
+  // push gamelog CNY (HL Client)
+  async pushGamelogHlCny(params) {
+    this.loggerHelperService.debugLog(
+      'Hit Endpoint Gamelog CNY Client (HL)',
+      {
+        Url: process.env.GAMELOG_URL_CNY,
+        params,
+      }
+    );
+    const pushGamelog = await axios.post(process.env.GAMELOG_URL_CNY,params);
+    if(pushGamelog.data.status == "success"){
+      this.loggerHelperService.debugLog(
+        'Return Hit Endpoint Gamelog CNY Client (HL)',
+        {
+          Url: process.env.GAMELOG_URL_CNY,
           return: pushGamelog.data,
         }
       );
