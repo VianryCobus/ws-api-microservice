@@ -11,7 +11,8 @@ import { Queue } from "bull";
 
 @Injectable()
 export class ClientService {
-  private geoip = require('geoip-lite');
+  // private geoip = require('geoip-lite');
+  private geoip = require('geoip-country');
   constructor(
     @InjectDataSource() private dataSource: DataSource,
     @InjectRepository(Currency) private currenciesRepository: Repository<Currency>,
@@ -37,7 +38,7 @@ export class ClientService {
     let langGame: string = 'en'; 
     try {
       const locationIp = this.geoip.lookup(dto.ip);
-      if(locationIp.country == 'CN')
+      if(locationIp.country == 'CN' || locationIp.country == 'HK')
         langGame = 'zh-cn';
       else if(locationIp.country == 'ID')
         langGame = 'id-id';
@@ -249,7 +250,7 @@ export class ClientService {
     let langGame: string = 'en'; 
     try {
       const locationIp = this.geoip.lookup(dto.ip);
-      if(locationIp.country == 'CN')
+      if(locationIp.country == 'CN' || locationIp.country == 'HK')
         langGame = 'zh-cn';
       else if(locationIp.country == 'ID')
         langGame = 'id-id';
@@ -648,7 +649,7 @@ export class ClientService {
     let langGame: string = 'en'; 
     try {
       const locationIp = this.geoip.lookup(dto.ip);
-      if(locationIp.country == 'CN')
+      if(locationIp.country == 'CN' || locationIp.country == 'HK')
         langGame = 'zh-cn';
       else if(locationIp.country == 'ID')
         langGame = 'id-id';
